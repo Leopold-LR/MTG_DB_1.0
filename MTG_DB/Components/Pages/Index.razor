@@ -1,0 +1,69 @@
+﻿@page "/"
+@inject NavigationManager Navigation
+
+<PageTitle>MTGHUB</PageTitle>
+
+<div class="simple-homepage">
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="logo-section">
+            <h1 class="logo">MTGHUB</h1>
+            <p class="tagline">Magic: The Gathering Collection Manager</p>
+        </div>
+
+        <!-- Search Box -->
+        <div class="search-section">
+            <div class="search-container">
+                <input type="text"
+                       class="search-input"
+                       placeholder="Search for any Magic card..."
+                       @bind="searchQuery"
+                       @bind:event="oninput"
+                       @onkeypress="HandleSearchKeyPress" />
+                <button class="search-button" @onclick="NavigateToSearch">
+                    <span class="search-icon">🔍</span>
+                    Search
+                </button>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="quick-actions">
+            <button class="action-btn" @onclick='() => Navigation.NavigateTo("/simplesearch")'>
+                Browse All Cards
+            </button>
+            <button class="action-btn secondary" @onclick='() => Navigation.NavigateTo("/collection")'>
+                My Collection
+            </button>
+        </div>
+    </main>
+
+    <!-- Minimal Footer -->
+    <footer class="simple-footer">
+        <p>Data provided by Scryfall API</p>
+    </footer>
+</div>
+
+@code {
+    private string searchQuery = "";
+
+    private void HandleSearchKeyPress(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            NavigateToSearch();
+        }
+    }
+
+    private void NavigateToSearch()
+    {
+        if (!string.IsNullOrWhiteSpace(searchQuery))
+        {
+            Navigation.NavigateTo($"/simplesearch?query={Uri.EscapeDataString(searchQuery)}");
+        }
+        else
+        {
+            Navigation.NavigateTo("/simplesearch");
+        }
+    }
+}

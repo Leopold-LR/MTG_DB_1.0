@@ -12,6 +12,12 @@ namespace MTG_DB.Models
 
         [JsonPropertyName("eur")]
         public string? Eur { get; set; }
+
+        [JsonPropertyName("UsdEtched")]
+        public string? UsdEtched { get; set; }
+
+        [JsonPropertyName("tix")]
+        public string? Tix { get; set; }
     }
 
 }

@@ -37,4 +37,24 @@ public class ScryfallService
 
         return Array.Empty<ScryfallCard>();
     }
+
+    public async Task<ScryfallCard?> GetCardByIdAsync(string id, CancellationToken ct = default)
+    {
+        if (string.IsNullOrWhiteSpace(id)) return null;
+
+        try
+        {
+            var response = await _http.GetAsync($"cards/{id}", ct);
+            if (response.IsSuccessStatusCode)
+            {
+                return await response.Content.ReadFromJsonAsync<ScryfallCard>(cancellationToken: ct);
+            }
+        }
+        catch (HttpRequestException)
+        {
+
+        }
+
+        return null;
+    }
 }

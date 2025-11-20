@@ -21,6 +21,24 @@ public class ScryfallCard
     [JsonPropertyName("image_uris")]
     public ScryfallImageUris? ImageUris { get; set; }
 
+    [JsonPropertyName("OracleText")]
+    public string OracleText { get; set; } = "";
+
+    [JsonPropertyName("layout")]
+    public string Layout { get; set; } = string.Empty;
+
+    [JsonPropertyName("CollectorNumber")]
+    public string CollectorNumber { get; set; } = string.Empty;
+
+    [JsonPropertyName("TypeLine")]
+    public string TypeLine { get; set; } = string.Empty;
+
+    [JsonPropertyName("ManaCost")]
+    public string ManaCost { get; set; } = string.Empty;
+
+    [JsonPropertyName("card_faces")]
+    public List<ScryfallCardFace> CardFaces { get; set; } = [];
+
     [JsonPropertyName("prices")]
     public ScryfallPrices? Prices { get; set; }
 }

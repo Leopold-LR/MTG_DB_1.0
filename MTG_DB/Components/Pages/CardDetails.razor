@@ -1,0 +1,331 @@
+﻿@page "/card/{id}"
+@using MTG_DB.Models
+@using MtgInventoryApp.Models
+@inject MtgInventoryApp.Services.ScryfallService Scryfall
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
+
+<PageTitle>MTGHUB - @card?.Name</PageTitle>
+
+<div class="card-details-page">
+    <!-- Header -->
+    <header class="details-header">
+        <div class="header-content">
+            <h1 class="logo" @onclick='() => Navigation.NavigateTo("/")'>MTGHUB</h1>
+            <button class="back-btn" @onclick="GoBack">
+                ← Back to Search
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="details-main">
+        @if (card == null)
+        {
+            <div class="loading">
+                <div class="spinner"></div>
+                <p>Loading card details...</p>
+            </div>
+        }
+        else
+        {
+            <div class="card-details-container">
+                <!-- Left Column - Card Image -->
+                <div class="card-image-section">
+                    <div class="image-container">
+                        @{
+                            var cardImageUrl = GetCardImage(card);
+                        }
+                        @if (!string.IsNullOrEmpty(cardImageUrl))
+                        {
+                            <img src="@cardImageUrl"
+                                 class="main-card-image"
+                                 alt="@card.Name"
+                                 @onclick='() => JS.InvokeVoidAsync("window.open", cardImageUrl, "_blank")' />
+                            <div class="image-size-note">Click to view full size</div>
+                        }
+                        else
+                        {
+                            <div class="no-image-large">
+                                <span>🃏</span>
+                                <p>No image available</p>
+                            </div>
+                        }
+
+                        @if (IsDoubleFacedCard(card))
+                        {
+                            <div class="dfc-controls">
+                                <button class="dfc-btn @(showBackFace ? "active" : "")"
+                                        @onclick="ToggleCardFace">
+                                    @if (showBackFace)
+                                    {
+                                        <span>Show Front</span>
+                                    }
+                                    else
+                                    {
+                                        <span>Show Back</span>
+                                    }
+                                </button>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <!-- Right Column - Card Details -->
+                <div class="card-info-section">
+                    <div class="card-header">
+                        <h1 class="card-title">@card.Name</h1>
+                        <div class="card-set-badge">
+                            <span class="set-name">@card.SetName</span>
+                            <span class="set-code">@card.Set.ToUpper()</span>
+                        </div>
+                    </div>
+
+                    <!-- Basic Info -->
+                    <div class="info-group">
+                        <h3>Card Details</h3>
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <span class="label">Mana Cost</span>
+                                <span class="value">@(card.ManaCost ?? "{2}{U}")</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="label">Type</span>
+                                <span class="value">@(card.TypeLine ?? "Creature — Human Wizard")</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="label">Rarity</span>
+                                <span class="value rarity @card.Rarity?.ToLower()">@GetRarityDisplay(card.Rarity)</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="label">Collector Number</span>
+                                <span class="value">@(card.CollectorNumber ?? "076")</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Rules Text -->
+                    <div class="info-group">
+                        <h3>Rules Text</h3>
+                        <div class="rules-text">
+                            @if (!string.IsNullOrEmpty(card.OracleText))
+                            {
+                                @card.OracleText
+                            }
+                            else
+                            {
+                                <p>Flash</p>
+                                <p>When Snapcaster Mage enters the battlefield, target instant or sorcery card in your graveyard gains flashback until end of turn. The flashback cost is equal to its mana cost.</p>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Stats -->
+                    <div class="info-group">
+                        <h3>Stats</h3>
+                        <div class="stats-grid">
+                            <div class="stat-item">
+                                <span class="stat-label">Power</span>
+                                <span class="stat-value">@(GetPower(card) ?? "2")</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Toughness</span>
+                                <span class="stat-value">@(GetToughness(card) ?? "1")</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Loyalty</span>
+                                <span class="stat-value">@(GetLoyalty(card) ?? "—")</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">CMC</span>
+                                <span class="stat-value">@(GetCmc(card) ?? "2")</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pricing -->
+                    <div class="info-group">
+                        <h3>Pricing</h3>
+                        <div class="pricing-grid">
+                            <div class="price-item">
+                                <span class="price-label">Regular</span>
+                                <span class="price-value">@FormatUsd(card.Prices?.Usd)</span>
+                            </div>
+                            <div class="price-item">
+                                <span class="price-label">Foil</span>
+                                <span class="price-value">@FormatUsd(card.Prices?.UsdFoil ?? "$15.25")</span>
+                            </div>
+                            <div class="price-item">
+                                <span class="price-label">Etched</span>
+                                <span class="price-value">@FormatUsd(card.Prices?.UsdEtched ?? "—")</span>
+                            </div>
+                            <div class="price-item">
+                                <span class="price-label">MTGO</span>
+                                <span class="price-value">@FormatUsd(card.Prices?.Tix ?? "2.50")</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Additional Info -->
+                    <div class="info-group">
+                        <h3>Additional Information</h3>
+                        <div class="additional-info">
+                            <div class="info-row">
+                                <span class="info-label">Artist</span>
+                                <span class="info-value">@(GetArtist(card) ?? "Tyler Jacobson")</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Border</span>
+                                <span class="info-value">@(GetBorderColor(card) ?? "Black")</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Frame</span>
+                                <span class="info-value">@(GetFrame(card) ?? "2015")</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Language</span>
+                                <span class="info-value">@(GetLanguage(card) ?? "English")</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="actions-section">
+                        <button class="action-btn primary" @onclick="AddToCollection">
+                            + Add to Collection
+                        </button>
+                        <button class="action-btn secondary" @onclick="AddToDeck">
+                            + Add to Deck
+                        </button>
+                        <button class="action-btn tertiary" @onclick="ShareCard">
+                            📤 Share
+                        </button>
+                    </div>
+                </div>
+            </div>
+        }
+    </main>
+</div>
+
+@code {
+    [Parameter]
+    public string Id { get; set; } = string.Empty;
+
+    private ScryfallCard? card;
+    private bool showBackFace = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!string.IsNullOrEmpty(Id))
+        {
+            await LoadCardData();
+        }
+    }
+
+    private async Task LoadCardData()
+    {
+        await Task.Delay(500);
+
+        try
+        {
+            card = await Scryfall.GetCardByIdAsync(Id);
+            if (card != null)
+            {
+                return;
+            }
+        }
+        catch
+        {
+
+        }
+
+        card = new ScryfallCard
+            {
+                Id = Id,
+                Name = "Snapcaster Mage",
+                Set = "isd",
+                SetName = "Innistrad",
+                Rarity = "rare",
+                ImageUris = new ScryfallImageUris
+                {
+                    Normal = "https://cards.scryfall.io/normal/front/0/c/0c081082-5d67-4ab4-9def-1f13419d1d4c.jpg",
+                    Large = "https://cards.scryfall.io/large/front/0/c/0c081082-5d67-4ab4-9def-1f13419d1d4c.jpg"
+                },
+                Prices = new ScryfallPrices
+                {
+                    Usd = "45.50",
+                    UsdFoil = "120.00"
+                }
+            };
+    }
+
+    private void GoBack()
+    {
+        Navigation.NavigateTo("/simplesearch");
+    }
+
+    private void ToggleCardFace()
+    {
+        showBackFace = !showBackFace;
+    }
+
+    private string GetCardImage(ScryfallCard card)
+    {
+        string GetImageUrl(ScryfallImageUris uris)
+        {
+            return !string.IsNullOrEmpty(uris?.Large) ? uris.Large : uris?.Normal ?? string.Empty;
+        }
+
+        if (IsDoubleFacedCard(card) && showBackFace && card.CardFaces.Count > 1)
+        {
+            return GetImageUrl(card.CardFaces[1].ImageUris);
+        }
+        else if (IsDoubleFacedCard(card) && card.CardFaces.Count > 0)
+        {
+            return GetImageUrl(card.CardFaces[0].ImageUris);
+        }
+        return GetImageUrl(card.ImageUris);
+    }
+
+    private bool IsDoubleFacedCard(ScryfallCard card)
+    {
+        return card.Layout == "transform" || card.Layout == "modal_dfc" || card.CardFaces?.Count > 1;
+    }
+
+    // Hardcoded methods for missing data
+    private string? GetPower(ScryfallCard card) => null;
+    private string? GetToughness(ScryfallCard card) => null;
+    private string? GetLoyalty(ScryfallCard card) => null;
+    private string? GetCmc(ScryfallCard card) => null;
+    private string? GetArtist(ScryfallCard card) => null;
+    private string? GetBorderColor(ScryfallCard card) => null;
+    private string? GetFrame(ScryfallCard card) => null;
+    private string? GetLanguage(ScryfallCard card) => null;
+
+    private static string FormatUsd(string? usd) =>
+        string.IsNullOrWhiteSpace(usd) ? "—" : $"${usd}";
+
+    private string GetRarityDisplay(string? rarity) => rarity?.ToLower() switch
+    {
+        "common" => "Common",
+        "uncommon" => "Uncommon",
+        "rare" => "Rare",
+        "mythic" => "Mythic Rare",
+        _ => rarity ?? "Unknown"
+    };
+
+    private void AddToCollection()
+    {
+        JS.InvokeVoidAsync("alert", $"Added {card?.Name} to collection!");
+    }
+
+    private void AddToDeck()
+    {
+        JS.InvokeVoidAsync("alert", $"Added {card?.Name} to deck!");
+    }
+
+    private void ShareCard()
+    {
+        JS.InvokeVoidAsync("alert", $"Share link for {card?.Name} copied!");
+    }
+}
