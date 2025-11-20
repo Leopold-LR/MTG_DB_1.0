@@ -1,0 +1,220 @@
+﻿@page "/"
+@using MtgInventoryApp.Models
+@inject MtgInventoryApp.Services.ScryfallService Scryfall
+@inject IJSRuntime JS
+
+<div class="container-fluid py-4 app-background">
+    <div class="row justify-content-center">
+        <div class="col-12 col-lg-10 col-xl-8">
+            <!-- Search Header -->
+            <div class="search-container">
+                <h1 class="search-header">🎴 MTG Card Search</h1>
+                <div class="row align-items-end">
+                    <div class="col-md-8 mb-3 mb-md-0">
+                        <label class="form-label fw-semibold text-muted">Search for Magic: The Gathering cards</label>
+                        <input class="form-control search-input"
+                               @bind="query"
+                               @bind:event="oninput"
+                               placeholder="Try 'Black Lotus', 'Lightning Bolt', or 'Teferi'..."
+                               @onkeypress="HandleKeyPress" />
+                    </div>
+                    <div class="col-md-4">
+                        <button class="btn w-100 search-btn text-white" @onclick="DoSearch" disabled="@isLoading">
+                            @if (isLoading)
+                            {
+                                <span>🔍 Searching...</span>
+                            }
+                            else
+                            {
+                                <span>🎯 Search Cards</span>
+                            }
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Error Message -->
+            @if (!string.IsNullOrEmpty(errorMessage))
+            {
+                <div class="alert alert-danger d-flex align-items-center" role="alert">
+                    <span class="me-2">⚠️</span>
+                    <div>@errorMessage</div>
+                </div>
+            }
+
+            <!-- Results -->
+            @if (isLoading)
+            {
+                <div class="text-center">
+                    <div class="loading-spinner"></div>
+                    <p class="text-muted mt-2">Searching Scryfall database...</p>
+                </div>
+            }
+            else if (cards?.Length > 0)
+            {
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h4 class="text-dark mb-0">Found @cards.Length cards</h4>
+                    <small class="text-muted">Click cards to enlarge</small>
+                </div>
+
+                <div class="cards-grid">
+                    @foreach (var card in cards)
+                    {
+                        <div class="card card-hover @GetRarityClass(card.Rarity)" @onclick="() => ShowCardDetails(card)">
+                            <div class="card-image-container">
+                                @if (!string.IsNullOrEmpty(card.ImageUris?.Normal))
+                                {
+                                    <img src="@card.ImageUris.Normal" class="card-image" alt="@card.Name" loading="lazy" />
+                                }
+                                else
+                                {
+                                    <div class="text-white text-center p-3">
+                                        <div style="font-size: 3rem;">🃏</div>
+                                        <p class="mt-2">No image available</p>
+                                    </div>
+                                }
+                            </div>
+                            <div class="card-info">
+                                <h6 class="card-title">@card.Name</h6>
+                                <div class="card-meta">
+                                    <div>@card.SetName</div>
+                                    <div class="text-uppercase small">@GetRarityDisplay(card.Rarity)</div>
+                                </div>
+                                <div class="card-price">
+                                    @FormatUsd(card.Prices?.Usd)
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else if (hasSearched)
+            {
+                <div class="empty-state">
+                    <div class="empty-state-icon">🔍</div>
+                    <h4 class="text-muted">No cards found</h4>
+                    <p class="text-muted">Try adjusting your search terms or check your spelling.</p>
+                    <button class="btn search-btn text-white mt-2" @onclick="ResetSearch">
+                        Try Again
+                    </button>
+                </div>
+            }
+            else
+            {
+                <!-- Welcome State -->
+                <div class="empty-state">
+                    <div class="empty-state-icon">✨</div>
+                    <h4 class="text-muted">Welcome to MTG Search</h4>
+                    <p class="text-muted">Enter a card name above to start searching the Magic: The Gathering database.</p>
+                    <div class="row mt-4">
+                        <div class="col-md-4 mb-2">
+                            <div class="card card-hover p-3 text-center">
+                                <div style="font-size: 2rem;">🔥</div>
+                                <h6>Popular Cards</h6>
+                                <small class="text-muted">Lightning Bolt, Counterspell</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-2">
+                            <div class="card card-hover p-3 text-center">
+                                <div style="font-size: 2rem;">🏆</div>
+                                <h6>Legendary</h6>
+                                <small class="text-muted">Teferi, Liliana, Chandra</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-2">
+                            <div class="card card-hover p-3 text-center">
+                                <div style="font-size: 2rem;">💎</div>
+                                <h6>Powerful</h6>
+                                <small class="text-muted">Black Lotus, Ancestral Recall</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    private string query = "";
+    private ScryfallCard[] cards = Array.Empty<ScryfallCard>();
+    private bool isLoading;
+    private bool hasSearched;
+    private string? errorMessage;
+
+    private async Task DoSearch()
+    {
+        if (string.IsNullOrWhiteSpace(query)) return;
+
+        hasSearched = true;
+        isLoading = true;
+        errorMessage = null;
+        cards = Array.Empty<ScryfallCard>();
+
+        try
+        {
+            cards = await Scryfall.SearchAsync(query);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+            errorMessage = $"Search failed: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private void HandleKeyPress(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            DoSearch();
+        }
+    }
+
+    private void ResetSearch()
+    {
+        query = "";
+        hasSearched = false;
+        cards = Array.Empty<ScryfallCard>();
+        errorMessage = null;
+    }
+
+    private void ShowCardDetails(ScryfallCard card)
+    {
+        if (!string.IsNullOrEmpty(card.ImageUris?.Normal))
+        {
+            JS.InvokeVoidAsync("window.open", card.ImageUris.Normal, "_blank");
+        }
+    }
+
+    private static string FormatUsd(string? usd) =>
+        string.IsNullOrWhiteSpace(usd) ? "Price N/A" : $"${usd}";
+
+    private string GetRarityClass(string? rarity)
+    {
+        return rarity?.ToLower() switch
+        {
+            "common" => "rarity-common",
+            "uncommon" => "rarity-uncommon",
+            "rare" => "rarity-rare",
+            "mythic" => "rarity-mythic",
+            _ => "rarity-common"
+        };
+    }
+
+    private string GetRarityDisplay(string? rarity)
+    {
+        return rarity?.ToLower() switch
+        {
+            "common" => "Common",
+            "uncommon" => "Uncommon",
+            "rare" => "Rare",
+            "mythic" => "Mythic Rare",
+            _ => rarity ?? "Unknown"
+        };
+    }
+}
