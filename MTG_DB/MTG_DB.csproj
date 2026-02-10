@@ -6,4 +6,32 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
+  <ItemGroup>
+    <None Remove="Components\Pages\CardDetails.razor.css" />
+    <None Remove="Components\Pages\Index.razor.css" />
+    <None Remove="Components\Pages\SimpleSearch.razor.css" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Components\Pages\CardDetails.razor.css">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Components\Pages\Index.razor.css">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Components\Pages\SimpleSearch.razor.css">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="bootstrap" Version="5.3.8" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Update="Components\Pages\CardDetails.razor">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
 </Project>

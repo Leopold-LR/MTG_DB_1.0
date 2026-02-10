@@ -27,6 +27,15 @@
                 <p>Loading card details...</p>
             </div>
         }
+        else if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <div class="error-state">
+                <div class="error-icon">⚠️</div>
+                <h3>Error Loading Card</h3>
+                <p>@errorMessage</p>
+                <button class="action-btn" @onclick="GoBack">Go Back</button>
+            </div>
+        }
         else
         {
             <div class="card-details-container">
@@ -74,7 +83,7 @@
                 <!-- Right Column - Card Details -->
                 <div class="card-info-section">
                     <div class="card-header">
-                        <h1 class="card-title">@card.Name</h1>
+                        <h1 class="card-title">@GetDisplayName(card)</h1>
                         <div class="card-set-badge">
                             <span class="set-name">@card.SetName</span>
                             <span class="set-code">@card.Set.ToUpper()</span>
@@ -87,11 +96,11 @@
                         <div class="info-grid">
                             <div class="info-item">
                                 <span class="label">Mana Cost</span>
-                                <span class="value">@(card.ManaCost ?? "{2}{U}")</span>
+                                <span class="value">@GetManaCost(card)</span>
                             </div>
                             <div class="info-item">
                                 <span class="label">Type</span>
-                                <span class="value">@(card.TypeLine ?? "Creature — Human Wizard")</span>
+                                <span class="value">@GetTypeLine(card)</span>
                             </div>
                             <div class="info-item">
                                 <span class="label">Rarity</span>
@@ -99,7 +108,7 @@
                             </div>
                             <div class="info-item">
                                 <span class="label">Collector Number</span>
-                                <span class="value">@(card.CollectorNumber ?? "076")</span>
+                                <span class="value">@card.CollectorNumber</span>
                             </div>
                         </div>
                     </div>
@@ -108,14 +117,23 @@
                     <div class="info-group">
                         <h3>Rules Text</h3>
                         <div class="rules-text">
-                            @if (!string.IsNullOrEmpty(card.OracleText))
+                            @if (!string.IsNullOrEmpty(GetOracleText(card)))
                             {
-                                @card.OracleText
+                                var oracleText = GetOracleText(card);
+                                if (!string.IsNullOrEmpty(oracleText))
+                                {
+                                    @foreach (var line in oracleText.Split('\n'))
+                                    {
+                                        if (!string.IsNullOrWhiteSpace(line))
+                                        {
+                                            <p>@line</p>
+                                        }
+                                    }
+                                }
                             }
                             else
                             {
-                                <p>Flash</p>
-                                <p>When Snapcaster Mage enters the battlefield, target instant or sorcery card in your graveyard gains flashback until end of turn. The flashback cost is equal to its mana cost.</p>
+                                <p class="text-muted">No rules text</p>
                             }
                         </div>
                     </div>
@@ -126,19 +144,19 @@
                         <div class="stats-grid">
                             <div class="stat-item">
                                 <span class="stat-label">Power</span>
-                                <span class="stat-value">@(GetPower(card) ?? "2")</span>
+                                <span class="stat-value">@GetPower(card)</span>
                             </div>
                             <div class="stat-item">
                                 <span class="stat-label">Toughness</span>
-                                <span class="stat-value">@(GetToughness(card) ?? "1")</span>
+                                <span class="stat-value">@GetToughness(card)</span>
                             </div>
                             <div class="stat-item">
                                 <span class="stat-label">Loyalty</span>
-                                <span class="stat-value">@(GetLoyalty(card) ?? "—")</span>
+                                <span class="stat-value">@GetLoyalty(card)</span>
                             </div>
                             <div class="stat-item">
                                 <span class="stat-label">CMC</span>
-                                <span class="stat-value">@(GetCmc(card) ?? "2")</span>
+                                <span class="stat-value">@GetCmc(card)</span>
                             </div>
                         </div>
                     </div>
@@ -153,15 +171,15 @@
                             </div>
                             <div class="price-item">
                                 <span class="price-label">Foil</span>
-                                <span class="price-value">@FormatUsd(card.Prices?.UsdFoil ?? "$15.25")</span>
+                                <span class="price-value">@FormatUsd(card.Prices?.UsdFoil)</span>
                             </div>
                             <div class="price-item">
                                 <span class="price-label">Etched</span>
-                                <span class="price-value">@FormatUsd(card.Prices?.UsdEtched ?? "—")</span>
+                                <span class="price-value">@FormatUsd(card.Prices?.UsdEtched)</span>
                             </div>
                             <div class="price-item">
                                 <span class="price-label">MTGO</span>
-                                <span class="price-value">@FormatUsd(card.Prices?.Tix ?? "2.50")</span>
+                                <span class="price-value">@FormatUsd(card.Prices?.Tix)</span>
                             </div>
                         </div>
                     </div>
@@ -172,19 +190,19 @@
                         <div class="additional-info">
                             <div class="info-row">
                                 <span class="info-label">Artist</span>
-                                <span class="info-value">@(GetArtist(card) ?? "Tyler Jacobson")</span>
+                                <span class="info-value">@GetArtist(card)</span>
                             </div>
                             <div class="info-row">
                                 <span class="info-label">Border</span>
-                                <span class="info-value">@(GetBorderColor(card) ?? "Black")</span>
+                                <span class="info-value">@GetBorderColor(card)</span>
                             </div>
                             <div class="info-row">
                                 <span class="info-label">Frame</span>
-                                <span class="info-value">@(GetFrame(card) ?? "2015")</span>
+                                <span class="info-value">@GetFrame(card)</span>
                             </div>
                             <div class="info-row">
                                 <span class="info-label">Language</span>
-                                <span class="info-value">@(GetLanguage(card) ?? "English")</span>
+                                <span class="info-value">@GetLanguage(card)</span>
                             </div>
                         </div>
                     </div>
@@ -213,6 +231,7 @@
 
     private ScryfallCard? card;
     private bool showBackFace = false;
+    private string? errorMessage;
 
     protected override async Task OnInitializedAsync()
     {
@@ -224,39 +243,20 @@
 
     private async Task LoadCardData()
     {
-        await Task.Delay(500);
-
         try
         {
             card = await Scryfall.GetCardByIdAsync(Id);
-            if (card != null)
+
+            if (card == null)
             {
-                return;
+                errorMessage = "Card not found. It may have been removed or the ID is invalid.";
             }
         }
-        catch
+        catch (Exception ex)
         {
-
+            errorMessage = $"Error loading card: {ex.Message}";
+            card = null;
         }
-
-        card = new ScryfallCard
-            {
-                Id = Id,
-                Name = "Snapcaster Mage",
-                Set = "isd",
-                SetName = "Innistrad",
-                Rarity = "rare",
-                ImageUris = new ScryfallImageUris
-                {
-                    Normal = "https://cards.scryfall.io/normal/front/0/c/0c081082-5d67-4ab4-9def-1f13419d1d4c.jpg",
-                    Large = "https://cards.scryfall.io/large/front/0/c/0c081082-5d67-4ab4-9def-1f13419d1d4c.jpg"
-                },
-                Prices = new ScryfallPrices
-                {
-                    Usd = "45.50",
-                    UsdFoil = "120.00"
-                }
-            };
     }
 
     private void GoBack()
@@ -269,38 +269,149 @@
         showBackFace = !showBackFace;
     }
 
+    private string GetDisplayName(ScryfallCard card)
+    {
+        if (IsDoubleFacedCard(card) && card.CardFaces.Any())
+        {
+            var currentFace = showBackFace && card.CardFaces.Count > 1
+                ? card.CardFaces[1]
+                : card.CardFaces[0];
+            return currentFace.Name;
+        }
+        return card.Name;
+    }
+
     private string GetCardImage(ScryfallCard card)
     {
-        string GetImageUrl(ScryfallImageUris uris)
+        if (IsDoubleFacedCard(card))
         {
-            return !string.IsNullOrEmpty(uris?.Large) ? uris.Large : uris?.Normal ?? string.Empty;
+            // For DFCs, get the appropriate face
+            var face = showBackFace && card.CardFaces.Count > 1
+                ? card.CardFaces[1]
+                : card.CardFaces.FirstOrDefault();
+
+            // Try to get image from the face
+            var faceImage = face?.ImageUris?.Large ?? face?.ImageUris?.Normal;
+            if (!string.IsNullOrEmpty(faceImage))
+                return faceImage;
         }
 
-        if (IsDoubleFacedCard(card) && showBackFace && card.CardFaces.Count > 1)
-        {
-            return GetImageUrl(card.CardFaces[1].ImageUris);
-        }
-        else if (IsDoubleFacedCard(card) && card.CardFaces.Count > 0)
-        {
-            return GetImageUrl(card.CardFaces[0].ImageUris);
-        }
-        return GetImageUrl(card.ImageUris);
+        // For regular cards or fallback
+        return card.ImageUris?.Large ?? card.ImageUris?.Normal ?? string.Empty;
     }
 
     private bool IsDoubleFacedCard(ScryfallCard card)
     {
-        return card.Layout == "transform" || card.Layout == "modal_dfc" || card.CardFaces?.Count > 1;
+        return card.Layout == "transform" ||
+               card.Layout == "modal_dfc" ||
+               card.Layout == "double_faced_token" ||
+               card.CardFaces?.Count > 1;
     }
 
-    // Hardcoded methods for missing data
-    private string? GetPower(ScryfallCard card) => null;
-    private string? GetToughness(ScryfallCard card) => null;
-    private string? GetLoyalty(ScryfallCard card) => null;
-    private string? GetCmc(ScryfallCard card) => null;
-    private string? GetArtist(ScryfallCard card) => null;
-    private string? GetBorderColor(ScryfallCard card) => null;
-    private string? GetFrame(ScryfallCard card) => null;
-    private string? GetLanguage(ScryfallCard card) => null;
+    // Helper methods to get data from the correct source
+    private string GetManaCost(ScryfallCard card)
+    {
+        if (IsDoubleFacedCard(card) && card.CardFaces.Any())
+        {
+            var currentFace = showBackFace && card.CardFaces.Count > 1
+                ? card.CardFaces[1]
+                : card.CardFaces[0];
+            return !string.IsNullOrEmpty(currentFace.ManaCost) ? currentFace.ManaCost : "—";
+        }
+        return !string.IsNullOrEmpty(card.ManaCost) ? card.ManaCost : "—";
+    }
+
+    private string GetTypeLine(ScryfallCard card)
+    {
+        if (IsDoubleFacedCard(card) && card.CardFaces.Any())
+        {
+            var currentFace = showBackFace && card.CardFaces.Count > 1
+                ? card.CardFaces[1]
+                : card.CardFaces[0];
+            return !string.IsNullOrEmpty(currentFace.TypeLine) ? currentFace.TypeLine : "—";
+        }
+        return !string.IsNullOrEmpty(card.TypeLine) ? card.TypeLine : "—";
+    }
+
+    private string GetOracleText(ScryfallCard card)
+    {
+        if (IsDoubleFacedCard(card) && card.CardFaces.Any())
+        {
+            var currentFace = showBackFace && card.CardFaces.Count > 1
+                ? card.CardFaces[1]
+                : card.CardFaces[0];
+            return !string.IsNullOrEmpty(currentFace.OracleText) ? currentFace.OracleText : card.OracleText;
+        }
+        return card.OracleText ?? string.Empty;
+    }
+
+    private string GetPower(ScryfallCard card)
+    {
+        if (IsDoubleFacedCard(card) && card.CardFaces.Any())
+        {
+            var currentFace = showBackFace && card.CardFaces.Count > 1
+                ? card.CardFaces[1]
+                : card.CardFaces[0];
+            return !string.IsNullOrEmpty(currentFace.Power) ? currentFace.Power : card.Power ?? "—";
+        }
+        return !string.IsNullOrEmpty(card.Power) ? card.Power : "—";
+    }
+
+    private string GetToughness(ScryfallCard card)
+    {
+        if (IsDoubleFacedCard(card) && card.CardFaces.Any())
+        {
+            var currentFace = showBackFace && card.CardFaces.Count > 1
+                ? card.CardFaces[1]
+                : card.CardFaces[0];
+            return !string.IsNullOrEmpty(currentFace.Toughness) ? currentFace.Toughness : card.Toughness ?? "—";
+        }
+        return !string.IsNullOrEmpty(card.Toughness) ? card.Toughness : "—";
+    }
+
+    private string GetLoyalty(ScryfallCard card)
+    {
+        if (IsDoubleFacedCard(card) && card.CardFaces.Any())
+        {
+            var currentFace = showBackFace && card.CardFaces.Count > 1
+                ? card.CardFaces[1]
+                : card.CardFaces[0];
+            return !string.IsNullOrEmpty(currentFace.Loyalty) ? currentFace.Loyalty : card.Loyalty ?? "—";
+        }
+        return !string.IsNullOrEmpty(card.Loyalty) ? card.Loyalty : "—";
+    }
+
+    private string GetCmc(ScryfallCard card)
+    {
+        return card.ConvertedManaCost > 0 ? card.ConvertedManaCost.ToString() : "—";
+    }
+
+    private string GetArtist(ScryfallCard card)
+    {
+        if (IsDoubleFacedCard(card) && card.CardFaces.Any())
+        {
+            var currentFace = showBackFace && card.CardFaces.Count > 1
+                ? card.CardFaces[1]
+                : card.CardFaces[0];
+            return !string.IsNullOrEmpty(currentFace.Artist) ? currentFace.Artist : card.Artist ?? "—";
+        }
+        return !string.IsNullOrEmpty(card.Artist) ? card.Artist : "—";
+    }
+
+    private string GetBorderColor(ScryfallCard card)
+    {
+        return !string.IsNullOrEmpty(card.BorderColor) ? card.BorderColor : "—";
+    }
+
+    private string GetFrame(ScryfallCard card)
+    {
+        return !string.IsNullOrEmpty(card.Frame) ? card.Frame : "—";
+    }
+
+    private string GetLanguage(ScryfallCard card)
+    {
+        return !string.IsNullOrEmpty(card.Lang) ? card.Lang : "—";
+    }
 
     private static string FormatUsd(string? usd) =>
         string.IsNullOrWhiteSpace(usd) ? "—" : $"${usd}";
@@ -326,6 +437,8 @@
 
     private void ShareCard()
     {
-        JS.InvokeVoidAsync("alert", $"Share link for {card?.Name} copied!");
+        var cardUrl = $"{Navigation.BaseUri}card/{card?.Id}";
+        JS.InvokeVoidAsync("navigator.clipboard.writeText", cardUrl);
+        JS.InvokeVoidAsync("alert", $"Link copied to clipboard!");
     }
 }

@@ -3,45 +3,387 @@
 
 <PageTitle>MTGHUB</PageTitle>
 
-<div class="simple-homepage">
-    <!-- Main Content -->
-    <main class="main-content">
+<style>
+    /* Electric Blue Homepage Theme */
+    .homepage-wrapper {
+        min-height: 100vh;
+        position: relative;
+        overflow: hidden;
+        color: #e9ecef;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+    }
+
+    /* Background matching search page */
+    .gradient-background {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: -2;
+        background: linear-gradient(135deg, #0a0a0f 0%, #000000 25%, #0a0a0f 50%, #000000 75%, #0a0a0f 100%), radial-gradient(circle at 20% 80%, rgba(0, 102, 255, 0.15) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(0, 170, 255, 0.1) 0%, transparent 50%), radial-gradient(circle at 40% 40%, rgba(0, 150, 255, 0.08) 0%, transparent 60%);
+        background-blend-mode: normal, screen, screen, screen;
+        background-size: 400% 400%, 100% 100%, 100% 100%, 100% 100%;
+        animation: gradientShift 20s ease infinite;
+    }
+
+
+
+    50% {
+        background-position: 100% 50%, center, center, center;
+    }
+
+    100% {
+        background-position: 0% 50%, center, center, center;
+    }
+
+    }
+
+    /* Grid overlay */
+    .grid-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: -1;
+        background-image: linear-gradient(rgba(0, 170, 255, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 170, 255, 0.03) 1px, transparent 1px);
+        background-size: 50px 50px;
+        mask-image: radial-gradient(circle at center, black 30%, transparent 70%);
+        -webkit-mask-image: radial-gradient(circle at center, black 30%, transparent 70%);
+        opacity: 0.3;
+    }
+
+    /* Main Content Container */
+    .homepage-container {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+        position: relative;
+        z-index: 1;
+    }
+
+    /* Logo Section */
+    .logo-section {
+        text-align: center;
+        margin-bottom: 4rem;
+        position: relative;
+    }
+
+    .logo-glow {
+        font-size: 5rem;
+        font-weight: 800;
+        letter-spacing: 2px;
+        margin-bottom: 0.5rem;
+        background: linear-gradient(135deg, #00aaff 0%, #0066ff 50%, #00aaff 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        text-shadow: 0 0 40px rgba(0, 170, 255, 0.5), 0 0 80px rgba(0, 170, 255, 0.3), 0 0 120px rgba(0, 170, 255, 0.2);
+        animation: pulse 3s ease-in-out infinite;
+    }
+
+ 
+
+    50% {
+        text-shadow: 0 0 60px rgba(0, 170, 255, 0.7), 0 0 100px rgba(0, 170, 255, 0.5), 0 0 140px rgba(0, 170, 255, 0.3);
+    }
+
+    }
+
+    .tagline {
+        font-size: 1.4rem;
+        font-weight: 300;
+        color: rgba(255, 255, 255, 0.8);
+        letter-spacing: 1px;
+        position: relative;
+        display: inline-block;
+        padding: 0 20px;
+    }
+
+        .tagline::before,
+        .tagline::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            width: 60px;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(0, 170, 255, 0.5), transparent);
+        }
+
+        .tagline::before {
+            left: -70px;
+        }
+
+        .tagline::after {
+            right: -70px;
+        }
+
+    /* Search Section */
+    .search-section {
+        width: 100%;
+        max-width: 700px;
+        margin-bottom: 4rem;
+    }
+
+    .search-wrapper {
+        background: rgba(16, 20, 32, 0.6);
+        backdrop-filter: blur(15px);
+        -webkit-backdrop-filter: blur(15px);
+        border: 1px solid rgba(0, 170, 255, 0.2);
+        border-radius: 16px;
+        padding: 0.75rem;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), 0 0 20px rgba(0, 170, 255, 0.1);
+        transition: all 0.3s ease;
+    }
+
+        .search-wrapper:focus-within {
+            border-color: #00aaff;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4), 0 0 30px rgba(0, 170, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+    .search-input-wrapper {
+        display: flex;
+        gap: 0.75rem;
+    }
+
+    .search-input {
+        flex: 1;
+        border: none;
+        padding: 1.25rem 1.5rem;
+        font-size: 1.1rem;
+        border-radius: 12px;
+        outline: none;
+        background: rgba(10, 14, 24, 0.8);
+        color: #ffffff;
+        transition: all 0.3s ease;
+        border: 1px solid rgba(0, 170, 255, 0.1);
+    }
+
+        .search-input:focus {
+            border-color: rgba(0, 170, 255, 0.3);
+            background: rgba(10, 14, 24, 0.9);
+            box-shadow: 0 0 0 3px rgba(0, 170, 255, 0.1);
+        }
+
+        .search-input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+    .search-button {
+        background: linear-gradient(135deg, #0066ff 0%, #00aaff 100%);
+        border: none;
+        color: #ffffff;
+        border-radius: 12px;
+        padding: 1.25rem 2.5rem;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 4px 20px rgba(0, 170, 255, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    }
+
+        .search-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.6s ease;
+        }
+
+        .search-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(0, 170, 255, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+        }
+
+            .search-button:hover::before {
+                left: 100%;
+            }
+
+    /* Quick Actions */
+    .quick-actions {
+        display: flex;
+        gap: 2rem;
+        margin-bottom: 4rem;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .action-btn {
+        padding: 1.25rem 2.5rem;
+        border-radius: 12px;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+        font-size: 1rem;
+        border: none;
+    }
+
+    .action-primary {
+        background: rgba(16, 20, 32, 0.6);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(0, 170, 255, 0.3);
+        color: #00aaff;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .action-secondary {
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: #ffffff;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .action-btn:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 30px rgba(0, 170, 255, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    }
+
+    .action-primary:hover {
+        background: rgba(0, 170, 255, 0.1);
+        border-color: #00aaff;
+    }
+
+    .action-secondary:hover {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    /* Footer */
+    .homepage-footer {
+        margin-top: 3rem;
+        text-align: center;
+        color: rgba(255, 255, 255, 0.5);
+        font-size: 0.9rem;
+        padding: 1.5rem;
+        background: rgba(10, 14, 24, 0.4);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border-radius: 12px;
+        border: 1px solid rgba(0, 170, 255, 0.1);
+        width: 100%;
+        max-width: 500px;
+    }
+
+    /* Responsive */
+
+
+    .logo-glow {
+        font-size: 3.5rem;
+    }
+
+    .tagline {
+        font-size: 1.1rem;
+    }
+
+        .tagline::before,
+        .tagline::after {
+            width: 30px;
+        }
+
+        .tagline::before {
+            left: -40px;
+        }
+
+        .tagline::after {
+            right: -40px;
+        }
+
+    .search-input-wrapper {
+        flex-direction: column;
+    }
+
+    .search-button {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .quick-actions {
+        flex-direction: column;
+        gap: 1rem;
+        width: 100%;
+        max-width: 300px;
+    }
+
+    .action-btn {
+        width: 100%;
+        text-align: center;
+    }
+
+    .grid-overlay {
+        background-size: 30px 30px;
+    }
+
+    }
+
+
+
+    .tagline {
+        font-size: 1rem;
+    }
+
+    }
+</style>
+
+<!-- Background matching search page -->
+<div class="gradient-background"></div>
+<div class="grid-overlay"></div>
+
+<div class="homepage-wrapper">
+    <div class="homepage-container">
+        <!-- Logo Section -->
         <div class="logo-section">
-            <h1 class="logo">MTGHUB</h1>
+            <h1 class="logo-glow">MTGHUB</h1>
             <p class="tagline">Magic: The Gathering Collection Manager</p>
         </div>
 
-        <!-- Search Box -->
+        <!-- Search Section -->
         <div class="search-section">
-            <div class="search-container">
-                <input type="text"
-                       class="search-input"
-                       placeholder="Search for any Magic card..."
-                       @bind="searchQuery"
-                       @bind:event="oninput"
-                       @onkeypress="HandleSearchKeyPress" />
-                <button class="search-button" @onclick="NavigateToSearch">
-                    <span class="search-icon">🔍</span>
-                    Search
-                </button>
+            <div class="search-wrapper">
+                <div class="search-input-wrapper">
+                    <input type="text"
+                           class="search-input"
+                           placeholder="Search for any Magic card..."
+                           @bind="searchQuery"
+                           @bind:event="oninput"
+                           @onkeypress="HandleSearchKeyPress" />
+                    <button class="search-button" @onclick="NavigateToSearch">
+                        Search
+                    </button>
+                </div>
             </div>
         </div>
 
         <!-- Quick Actions -->
         <div class="quick-actions">
-            <button class="action-btn" @onclick='() => Navigation.NavigateTo("/simplesearch")'>
+            <button class="action-btn action-primary" @onclick='() => Navigation.NavigateTo("/simplesearch")'>
                 Browse All Cards
             </button>
-            <button class="action-btn secondary" @onclick='() => Navigation.NavigateTo("/collection")'>
+            <button class="action-btn action-secondary" @onclick='() => Navigation.NavigateTo("/collection")'>
                 My Collection
             </button>
         </div>
-    </main>
 
-    <!-- Minimal Footer -->
-    <footer class="simple-footer">
-        <p>Data provided by Scryfall API</p>
-    </footer>
+        <!-- Footer -->
+        <footer class="homepage-footer">
+            <p>Data provided by Scryfall API</p>
+        </footer>
+    </div>
 </div>
 
 @code {

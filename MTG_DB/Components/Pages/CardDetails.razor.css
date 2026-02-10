@@ -421,5 +421,35 @@
         text-align: center;
     }
 
+    .error-state {
+        text-align: center;
+        padding: 4rem 2rem;
+    }
+
+    .error-icon {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+        opacity: 0.7;
+    }
+
+    .error-state h3 {
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+        color: #ff6b6b;
+    }
+
+    .error-state p {
+        opacity: 0.8;
+        margin-bottom: 2rem;
+    }
+
+    .text-muted {
+        opacity: 0.6;
+        font-style: italic;
+    }
+
+    .rules-text p {
+        margin-bottom: 0.5rem;
+    }
 
 }

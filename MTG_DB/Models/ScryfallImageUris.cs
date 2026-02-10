@@ -5,19 +5,16 @@ namespace MTG_DB.Models
     public class ScryfallImageUris
     {
         [JsonPropertyName("small")]
-        public string? Small { get; set; }
+        public string Small { get; set; } = string.Empty;
 
         [JsonPropertyName("normal")]
-        public string? Normal { get; set; }
+        public string Normal { get; set; } = string.Empty;
 
         [JsonPropertyName("large")]
-        public string? Large { get; set; }
+        public string Large { get; set; } = string.Empty;
 
         [JsonPropertyName("png")]
-        public string? Png { get; set; }
-
-        [JsonPropertyName("art_crop")]
-        public string? ArtCrop { get; set; }
+        public string Png { get; set; } = string.Empty;
     }
 
 }
