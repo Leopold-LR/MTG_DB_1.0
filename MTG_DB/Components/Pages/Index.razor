@@ -1,47 +1,89 @@
-﻿@page "/"
+@page "/"
 @inject NavigationManager Navigation
 
-<PageTitle>MTGHUB</PageTitle>
+<PageTitle>MTGHUB — Magic: The Gathering Companion</PageTitle>
 
-<div class="simple-homepage">
-    <!-- Main Content -->
-    <main class="main-content">
-        <div class="logo-section">
-            <h1 class="logo">MTGHUB</h1>
-            <p class="tagline">Magic: The Gathering Collection Manager</p>
-        </div>
+<div class="homepage">
 
-        <!-- Search Box -->
-        <div class="search-section">
-            <div class="search-container">
-                <input type="text"
-                       class="search-input"
-                       placeholder="Search for any Magic card..."
-                       @bind="searchQuery"
-                       @bind:event="oninput"
-                       @onkeypress="HandleSearchKeyPress" />
-                <button class="search-button" @onclick="NavigateToSearch">
-                    <span class="search-icon">🔍</span>
-                    Search
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-bg-overlay"></div>
+        <div class="hero-content">
+            <div class="hero-badge">Magic: The Gathering Companion</div>
+            <h1 class="hero-title">MTGHUB</h1>
+            <p class="hero-tagline">Search, collect, and master every card in the multiverse.</p>
+
+            <!-- Hero Search -->
+            <div class="hero-search">
+                <div class="search-container">
+                    <span class="search-icon-prefix">🔍</span>
+                    <input type="text"
+                           class="search-input"
+                           placeholder="Search for any Magic card..."
+                           @bind="searchQuery"
+                           @bind:event="oninput"
+                           @onkeypress="HandleSearchKeyPress" />
+                    <button class="search-button" @onclick="NavigateToSearch">
+                        Search
+                    </button>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="quick-actions">
+                <button class="action-chip" @onclick='() => Navigation.NavigateTo("/simplesearch")'>
+                    <span>🃏</span> Browse All Cards
+                </button>
+                <button class="action-chip secondary" @onclick='() => Navigation.NavigateTo("/collection")'>
+                    <span>📦</span> My Collection
+                </button>
+                <button class="action-chip secondary" @onclick='() => Navigation.NavigateTo("/decks")'>
+                    <span>📋</span> My Decks
                 </button>
             </div>
         </div>
+    </section>
 
-        <!-- Quick Actions -->
-        <div class="quick-actions">
-            <button class="action-btn" @onclick='() => Navigation.NavigateTo("/simplesearch")'>
-                Browse All Cards
-            </button>
-            <button class="action-btn secondary" @onclick='() => Navigation.NavigateTo("/collection")'>
-                My Collection
-            </button>
+    <!-- Feature Highlights -->
+    <section class="features-section">
+        <div class="features-grid">
+            <div class="feature-card" @onclick='() => Navigation.NavigateTo("/simplesearch")'>
+                <div class="feature-icon mana-blue">🔍</div>
+                <h3>Card Search</h3>
+                <p>Search over 25,000 Magic cards with real-time results and full artwork.</p>
+                <span class="feature-link">Browse cards →</span>
+            </div>
+
+            <div class="feature-card" @onclick='() => Navigation.NavigateTo("/collection")'>
+                <div class="feature-icon mana-green">📦</div>
+                <h3>Collection</h3>
+                <p>Track every card you own across all sets and formats.</p>
+                <span class="feature-link">View collection →</span>
+            </div>
+
+            <div class="feature-card" @onclick='() => Navigation.NavigateTo("/decks")'>
+                <div class="feature-icon mana-red">🃏</div>
+                <h3>Deck Builder</h3>
+                <p>Build and refine decks for Standard, Commander, and more.</p>
+                <span class="feature-link">Build a deck →</span>
+            </div>
         </div>
-    </main>
+    </section>
 
-    <!-- Minimal Footer -->
-    <footer class="simple-footer">
-        <p>Data provided by Scryfall API</p>
+    <!-- Mana Color Bar -->
+    <div class="mana-bar">
+        <div class="mana-pip white" title="White"></div>
+        <div class="mana-pip blue" title="Blue"></div>
+        <div class="mana-pip black" title="Black"></div>
+        <div class="mana-pip red" title="Red"></div>
+        <div class="mana-pip green" title="Green"></div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="homepage-footer">
+        <p>Card data provided by <a href="https://scryfall.com" target="_blank" rel="noopener">Scryfall API</a></p>
     </footer>
+
 </div>
 
 @code {
@@ -49,21 +91,14 @@
 
     private void HandleSearchKeyPress(KeyboardEventArgs e)
     {
-        if (e.Key == "Enter")
-        {
-            NavigateToSearch();
-        }
+        if (e.Key == "Enter") NavigateToSearch();
     }
 
     private void NavigateToSearch()
     {
         if (!string.IsNullOrWhiteSpace(searchQuery))
-        {
             Navigation.NavigateTo($"/simplesearch?query={Uri.EscapeDataString(searchQuery)}");
-        }
         else
-        {
             Navigation.NavigateTo("/simplesearch");
-        }
     }
 }
