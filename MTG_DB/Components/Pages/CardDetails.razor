@@ -87,11 +87,11 @@
                         <div class="info-grid">
                             <div class="info-item">
                                 <span class="label">Mana Cost</span>
-                                <span class="value">@(card.ManaCost ?? "{2}{U}")</span>
+                                <span class="value">@(card.ManaCost ?? "—")</span>
                             </div>
                             <div class="info-item">
                                 <span class="label">Type</span>
-                                <span class="value">@(card.TypeLine ?? "Creature — Human Wizard")</span>
+                                <span class="value">@(card.TypeLine ?? "—")</span>
                             </div>
                             <div class="info-item">
                                 <span class="label">Rarity</span>
@@ -99,7 +99,7 @@
                             </div>
                             <div class="info-item">
                                 <span class="label">Collector Number</span>
-                                <span class="value">@(card.CollectorNumber ?? "076")</span>
+                                <span class="value">@(card.CollectorNumber ?? "—")</span>
                             </div>
                         </div>
                     </div>
@@ -114,8 +114,7 @@
                             }
                             else
                             {
-                                <p>Flash</p>
-                                <p>When Snapcaster Mage enters the battlefield, target instant or sorcery card in your graveyard gains flashback until end of turn. The flashback cost is equal to its mana cost.</p>
+                                <p class="text-muted">No rules text.</p>
                             }
                         </div>
                     </div>
@@ -126,11 +125,11 @@
                         <div class="stats-grid">
                             <div class="stat-item">
                                 <span class="stat-label">Power</span>
-                                <span class="stat-value">@(GetPower(card) ?? "2")</span>
+                                <span class="stat-value">@(GetPower(card) ?? "—")</span>
                             </div>
                             <div class="stat-item">
                                 <span class="stat-label">Toughness</span>
-                                <span class="stat-value">@(GetToughness(card) ?? "1")</span>
+                                <span class="stat-value">@(GetToughness(card) ?? "—")</span>
                             </div>
                             <div class="stat-item">
                                 <span class="stat-label">Loyalty</span>
@@ -138,7 +137,7 @@
                             </div>
                             <div class="stat-item">
                                 <span class="stat-label">CMC</span>
-                                <span class="stat-value">@(GetCmc(card) ?? "2")</span>
+                                <span class="stat-value">@(GetCmc(card) ?? "—")</span>
                             </div>
                         </div>
                     </div>
@@ -153,15 +152,15 @@
                             </div>
                             <div class="price-item">
                                 <span class="price-label">Foil</span>
-                                <span class="price-value">@FormatUsd(card.Prices?.UsdFoil ?? "$15.25")</span>
+                                <span class="price-value">@FormatUsd(card.Prices?.UsdFoil)</span>
                             </div>
                             <div class="price-item">
                                 <span class="price-label">Etched</span>
-                                <span class="price-value">@FormatUsd(card.Prices?.UsdEtched ?? "—")</span>
+                                <span class="price-value">@FormatUsd(card.Prices?.UsdEtched)</span>
                             </div>
                             <div class="price-item">
                                 <span class="price-label">MTGO</span>
-                                <span class="price-value">@FormatUsd(card.Prices?.Tix ?? "2.50")</span>
+                                <span class="price-value">@FormatUsd(card.Prices?.Tix)</span>
                             </div>
                         </div>
                     </div>
@@ -172,19 +171,19 @@
                         <div class="additional-info">
                             <div class="info-row">
                                 <span class="info-label">Artist</span>
-                                <span class="info-value">@(GetArtist(card) ?? "Tyler Jacobson")</span>
+                                <span class="info-value">@(GetArtist(card) ?? "—")</span>
                             </div>
                             <div class="info-row">
                                 <span class="info-label">Border</span>
-                                <span class="info-value">@(GetBorderColor(card) ?? "Black")</span>
+                                <span class="info-value">@(GetBorderColor(card) ?? "—")</span>
                             </div>
                             <div class="info-row">
                                 <span class="info-label">Frame</span>
-                                <span class="info-value">@(GetFrame(card) ?? "2015")</span>
+                                <span class="info-value">@(GetFrame(card) ?? "—")</span>
                             </div>
                             <div class="info-row">
                                 <span class="info-label">Language</span>
-                                <span class="info-value">@(GetLanguage(card) ?? "English")</span>
+                                <span class="info-value">@(GetLanguage(card) ?? "—")</span>
                             </div>
                         </div>
                     </div>
@@ -292,15 +291,14 @@
         return card.Layout == "transform" || card.Layout == "modal_dfc" || card.CardFaces?.Count > 1;
     }
 
-    // Hardcoded methods for missing data
-    private string? GetPower(ScryfallCard card) => null;
-    private string? GetToughness(ScryfallCard card) => null;
-    private string? GetLoyalty(ScryfallCard card) => null;
-    private string? GetCmc(ScryfallCard card) => null;
-    private string? GetArtist(ScryfallCard card) => null;
-    private string? GetBorderColor(ScryfallCard card) => null;
-    private string? GetFrame(ScryfallCard card) => null;
-    private string? GetLanguage(ScryfallCard card) => null;
+    private string? GetPower(ScryfallCard card) => card.Power;
+    private string? GetToughness(ScryfallCard card) => card.Toughness;
+    private string? GetLoyalty(ScryfallCard card) => card.Loyalty;
+    private string? GetCmc(ScryfallCard card) => card.Cmc > 0 ? card.Cmc.ToString("G") : null;
+    private string? GetArtist(ScryfallCard card) => card.Artist;
+    private string? GetBorderColor(ScryfallCard card) => card.BorderColor;
+    private string? GetFrame(ScryfallCard card) => card.Frame;
+    private string? GetLanguage(ScryfallCard card) => card.Lang;
 
     private static string FormatUsd(string? usd) =>
         string.IsNullOrWhiteSpace(usd) ? "—" : $"${usd}";

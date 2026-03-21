@@ -13,7 +13,7 @@ namespace MTG_DB.Models
         [JsonPropertyName("eur")]
         public string? Eur { get; set; }
 
-        [JsonPropertyName("UsdEtched")]
+        [JsonPropertyName("usd_etched")]
         public string? UsdEtched { get; set; }
 
         [JsonPropertyName("tix")]
