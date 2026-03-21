@@ -13,11 +13,11 @@ public class ScryfallService
         _http = http;
     }
 
-    public async Task<ScryfallCard[]> SearchAsync(string query, CancellationToken ct = default)
+    public async Task<ScryfallListResponse> SearchAsync(string query, int page = 1, CancellationToken ct = default)
     {
-        if (string.IsNullOrWhiteSpace(query)) return Array.Empty<ScryfallCard>();
+        if (string.IsNullOrWhiteSpace(query)) return new ScryfallListResponse();
 
-        var endpoint = $"/cards/search?q={Uri.EscapeDataString(query.Trim())}";
+        var endpoint = $"/cards/search?q={Uri.EscapeDataString(query.Trim())}&page={page}";
 
         HttpResponseMessage response;
         try
@@ -26,16 +26,16 @@ public class ScryfallService
         }
         catch (HttpRequestException)
         {
-            return Array.Empty<ScryfallCard>();
+            return new ScryfallListResponse();
         }
 
         if (response.IsSuccessStatusCode)
         {
-            var list = await response.Content.ReadFromJsonAsync<ScryfallListResponse>(cancellationToken: ct);
-            return list?.Data ?? Array.Empty<ScryfallCard>();
+            return await response.Content.ReadFromJsonAsync<ScryfallListResponse>(cancellationToken: ct)
+                   ?? new ScryfallListResponse();
         }
 
-        return Array.Empty<ScryfallCard>();
+        return new ScryfallListResponse();
     }
 
     public async Task<ScryfallCard?> GetCardByIdAsync(string id, CancellationToken ct = default)

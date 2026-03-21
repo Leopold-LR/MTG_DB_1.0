@@ -41,15 +41,15 @@
                 <p>Searching cards...</p>
             </div>
         }
-        else if (cards?.Length > 0)
+        else if (allCards.Count > 0)
         {
             <div class="results-header">
-                <h2>Found @cards.Length cards</h2>
-                <small>Hover over 🔄 cards to see both sides</small>
+                <h2>@totalCards cards found</h2>
+                <small>Page @currentPage of @TotalPages &nbsp;·&nbsp; Hover over 🔄 cards to see both sides</small>
             </div>
 
             <div class="cards-grid">
-                @foreach (var card in cards)
+                @foreach (var card in PagedCards)
                 {
                     <div class="card-item @GetRarityClass(card.Rarity)" @onclick="() => ShowCardDetails(card)">
                         <div class="card-image-container @(IsDoubleFacedCard(card) ? "dfc-container" : "")">
@@ -95,6 +95,14 @@
                     </div>
                 }
             </div>
+
+            <div class="pagination">
+                <button class="page-btn" @onclick="PrevPage" disabled="@(!CanGoPrev)">← Previous</button>
+                <span class="page-info">Page @currentPage of @TotalPages</span>
+                <button class="page-btn" @onclick="NextPage" disabled="@(!CanGoNext || isLoadingMore)">
+                    @if (isLoadingMore) { <span>Loading...</span> } else { <span>Next →</span> }
+                </button>
+            </div>
         }
         else if (hasSearched)
         {
@@ -122,10 +130,25 @@
     public string? Query { get; set; }
 
     private string query = "";
-    private ScryfallCard[] cards = Array.Empty<ScryfallCard>();
+    private List<ScryfallCard> allCards = new();
     private bool isLoading;
+    private bool isLoadingMore;
     private bool hasSearched;
     private string? errorMessage;
+
+    // Pagination state
+    private int currentPage = 1;
+    private const int pageSize = 20;
+    private bool hasMore;
+    private int totalCards;
+    private int scryfallPage = 1;
+
+    private IEnumerable<ScryfallCard> PagedCards => allCards.Skip((currentPage - 1) * pageSize).Take(pageSize);
+    private int TotalPages => totalCards > 0
+        ? (int)Math.Ceiling(totalCards / (double)pageSize)
+        : (int)Math.Ceiling(allCards.Count / (double)pageSize);
+    private bool CanGoPrev => currentPage > 1;
+    private bool CanGoNext => currentPage < TotalPages || hasMore;
 
     protected override void OnParametersSet()
     {
@@ -143,11 +166,18 @@
         hasSearched = true;
         isLoading = true;
         errorMessage = null;
-        cards = Array.Empty<ScryfallCard>();
+        allCards = new();
+        currentPage = 1;
+        scryfallPage = 1;
+        totalCards = 0;
+        hasMore = false;
 
         try
         {
-            cards = await Scryfall.SearchAsync(query);
+            var result = await Scryfall.SearchAsync(query, scryfallPage);
+            allCards.AddRange(result.Data);
+            hasMore = result.HasMore;
+            totalCards = result.TotalCards;
         }
         catch (Exception ex)
         {
@@ -160,6 +190,40 @@
         }
     }
 
+    private async Task NextPage()
+    {
+        var targetPage = currentPage + 1;
+        // If we need more cards from the API
+        while (targetPage * pageSize > allCards.Count && hasMore)
+        {
+            isLoadingMore = true;
+            StateHasChanged();
+            scryfallPage++;
+            try
+            {
+                var result = await Scryfall.SearchAsync(query, scryfallPage);
+                allCards.AddRange(result.Data);
+                hasMore = result.HasMore;
+            }
+            catch
+            {
+                hasMore = false;
+                break;
+            }
+            finally
+            {
+                isLoadingMore = false;
+            }
+        }
+        currentPage = targetPage;
+        StateHasChanged();
+    }
+
+    private void PrevPage()
+    {
+        if (CanGoPrev) currentPage--;
+    }
+
     private void HandleKeyPress(KeyboardEventArgs e)
     {
         if (e.Key == "Enter") DoSearch();
@@ -169,7 +233,10 @@
     {
         query = "";
         hasSearched = false;
-        cards = Array.Empty<ScryfallCard>();
+        allCards = new();
+        currentPage = 1;
+        totalCards = 0;
+        hasMore = false;
     }
 
     private void ShowCardDetails(ScryfallCard card)
