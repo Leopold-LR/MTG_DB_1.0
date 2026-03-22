@@ -1,0 +1,244 @@
+@page "/collection"
+@rendermode InteractiveServer
+@using MtgInventoryApp.Services
+@inject ToastService ToastService
+@inject NavigationManager Navigation
+
+<PageTitle>MTGHUB - Collection</PageTitle>
+
+<div class="collection-page">
+
+    <!-- Header -->
+    <header class="collection-header">
+        <div class="col-header-inner">
+            <a class="logo" href="/" title="Back to home">
+                <span class="logo-icon">⬡</span>
+                <span class="logo-text">MTGHUB</span>
+            </a>
+            <h1 class="collection-title">My Collection</h1>
+        </div>
+    </header>
+
+    <!-- Stats Bar -->
+    <div class="stats-bar">
+        <div class="stats-inner">
+            <div class="stat-chip">
+                <span class="stat-icon">
+                    <svg viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/>
+                        <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd"/>
+                    </svg>
+                </span>
+                <div class="stat-info">
+                    <span class="stat-label">Total Cards</span>
+                    <span class="stat-value">@TotalCards</span>
+                </div>
+            </div>
+            <div class="stat-divider"></div>
+            <div class="stat-chip">
+                <span class="stat-icon">
+                    <svg viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z"/>
+                    </svg>
+                </span>
+                <div class="stat-info">
+                    <span class="stat-label">Unique Cards</span>
+                    <span class="stat-value">@UniqueCards</span>
+                </div>
+            </div>
+            <div class="stat-divider"></div>
+            <div class="stat-chip">
+                <span class="stat-icon stat-icon-gold">
+                    <svg viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z"/>
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clip-rule="evenodd"/>
+                    </svg>
+                </span>
+                <div class="stat-info">
+                    <span class="stat-label">Est. Value (USD)</span>
+                    <span class="stat-value stat-value-gold">@EstimatedValue</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="collection-main">
+
+        @if (collection.Count == 0)
+        {
+            <!-- Empty State -->
+            <div class="empty-collection">
+                <div class="empty-icon-wrap">
+                    <svg class="empty-svg" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="60" cy="60" r="56" stroke="rgba(236,201,75,0.15)" stroke-width="2"/>
+                        <rect x="30" y="38" width="60" height="46" rx="5" stroke="rgba(236,201,75,0.25)" stroke-width="2" fill="none"/>
+                        <rect x="38" y="30" width="60" height="46" rx="5" stroke="rgba(236,201,75,0.18)" stroke-width="2" fill="none"/>
+                        <path d="M44 68 L54 52 L64 62 L72 46 L84 68" stroke="rgba(236,201,75,0.4)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                        <circle cx="54" cy="52" r="2" fill="rgba(236,201,75,0.5)"/>
+                    </svg>
+                </div>
+                <h2 class="empty-title">Your collection is empty</h2>
+                <p class="empty-subtitle">Find a card and add it to start building your collection!</p>
+                <button class="cta-btn" @onclick='() => Navigation.NavigateTo("/simplesearch")'>
+                    <svg viewBox="0 0 20 20" fill="currentColor" width="16" height="16">
+                        <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"/>
+                    </svg>
+                    Search Cards
+                </button>
+            </div>
+        }
+        else
+        {
+            <!-- Filter/Search Bar -->
+            <div class="collection-toolbar">
+                <div class="collection-search-box">
+                    <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"/>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                    </svg>
+                    <input class="collection-search-input"
+                           @bind="filterQuery"
+                           @bind:event="oninput"
+                           placeholder="Search your collection..." />
+                    @if (!string.IsNullOrEmpty(filterQuery))
+                    {
+                        <button class="clear-filter-btn" @onclick='() => filterQuery = ""'>
+                            <svg viewBox="0 0 20 20" fill="currentColor" width="14" height="14">
+                                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                            </svg>
+                        </button>
+                    }
+                </div>
+                <span class="toolbar-count">@FilteredCollection.Count() card@(FilteredCollection.Count() == 1 ? "" : "s")</span>
+            </div>
+
+            @if (!FilteredCollection.Any())
+            {
+                <div class="no-results-state">
+                    <div class="no-results-icon">🔍</div>
+                    <p>No cards match <strong>"@filterQuery"</strong></p>
+                    <button class="clear-search-btn" @onclick='() => filterQuery = ""'>Clear search</button>
+                </div>
+            }
+            else
+            {
+                <!-- Card Grid -->
+                <div class="collection-grid">
+                    @foreach (var entry in FilteredCollection)
+                    {
+                        <div class="col-card @(entry.IsFoil ? "col-card-foil" : "")">
+
+                            <!-- Image -->
+                            <div class="col-image-wrap">
+                                @if (!string.IsNullOrEmpty(entry.ImageUrl))
+                                {
+                                    <img src="@entry.ImageUrl" class="col-card-img" alt="@entry.Name" loading="lazy" />
+                                }
+                                else
+                                {
+                                    <div class="col-no-image">
+                                        <span>🃏</span>
+                                    </div>
+                                }
+                                @if (entry.IsFoil)
+                                {
+                                    <div class="foil-overlay"></div>
+                                    <div class="foil-badge">✦ Foil</div>
+                                }
+                            </div>
+
+                            <!-- Card Body -->
+                            <div class="col-card-body">
+                                <h3 class="col-card-name">@entry.Name</h3>
+                                <div class="col-card-meta">
+                                    <span class="col-set-name">@entry.SetName</span>
+                                    <span class="col-set-code">@entry.SetCode.ToUpper()</span>
+                                </div>
+
+                                <div class="col-card-footer">
+                                    <!-- Condition Badge -->
+                                    <span class="condition-badge condition-@entry.Condition.ToLower()">@entry.Condition</span>
+
+                                    <!-- Quantity Stepper -->
+                                    <div class="qty-stepper">
+                                        <button class="qty-btn" @onclick="() => Decrement(entry)" disabled="@(entry.Quantity <= 1)" title="Decrease">−</button>
+                                        <span class="qty-value" title="Quantity">@entry.Quantity×</span>
+                                        <button class="qty-btn" @onclick="() => Increment(entry)" title="Increase">+</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    }
+                </div>
+            }
+        }
+
+    </main>
+</div>
+
+@code {
+    // ── Collection entry model ────────────────────────────────────────────────
+    private class CollectionEntry
+    {
+        public string Id        { get; set; } = Guid.NewGuid().ToString();
+        public string Name      { get; set; } = "";
+        public string SetName   { get; set; } = "";
+        public string SetCode   { get; set; } = "";
+        public string? ImageUrl { get; set; }
+        public string Condition { get; set; } = "NM";
+        public bool   IsFoil    { get; set; }
+        public int    Quantity  { get; set; } = 1;
+        public decimal? PriceUsd { get; set; }
+    }
+
+    // ── State ─────────────────────────────────────────────────────────────────
+    private string filterQuery = "";
+
+    // Demo collection — developer will replace with persistence layer
+    private List<CollectionEntry> collection = new()
+    {
+        new() { Name = "Black Lotus",            SetName = "Limited Edition Alpha", SetCode = "LEA", Condition = "NM",  IsFoil = false, Quantity = 1,  PriceUsd = 45000m },
+        new() { Name = "Jace, the Mind Sculptor", SetName = "Worldwake",             SetCode = "WWK", Condition = "LP",  IsFoil = true,  Quantity = 2,  PriceUsd = 55.99m },
+        new() { Name = "Lightning Bolt",          SetName = "Alpha",                 SetCode = "LEA", Condition = "NM",  IsFoil = false, Quantity = 4,  PriceUsd = 1.50m  },
+        new() { Name = "Sol Ring",                SetName = "Commander Masters",     SetCode = "CMM", Condition = "MP",  IsFoil = true,  Quantity = 1,  PriceUsd = 2.75m  },
+        new() { Name = "Mox Diamond",             SetName = "Stronghold",            SetCode = "STH", Condition = "HP",  IsFoil = false, Quantity = 1,  PriceUsd = 220m   },
+        new() { Name = "Ragavan, Nimble Pilferer", SetName = "Modern Horizons 2",   SetCode = "MH2", Condition = "NM",  IsFoil = false, Quantity = 3,  PriceUsd = 40m    },
+        new() { Name = "Orcish Bowmasters",       SetName = "Lord of the Rings",     SetCode = "LTR", Condition = "NM",  IsFoil = true,  Quantity = 2,  PriceUsd = 22m    },
+        new() { Name = "Force of Will",           SetName = "Alliances",             SetCode = "ALL", Condition = "LP",  IsFoil = false, Quantity = 2,  PriceUsd = 75m    },
+        new() { Name = "Counterspell",            SetName = "Masters Edition 4",     SetCode = "ME4", Condition = "NM",  IsFoil = false, Quantity = 4,  PriceUsd = 1.25m  },
+        new() { Name = "Wrenn and Six",           SetName = "Modern Horizons",       SetCode = "MH1", Condition = "DMG", IsFoil = false, Quantity = 1,  PriceUsd = 45m    },
+    };
+
+    // ── Computed properties ───────────────────────────────────────────────────
+    private IEnumerable<CollectionEntry> FilteredCollection =>
+        string.IsNullOrWhiteSpace(filterQuery)
+            ? collection
+            : collection.Where(e =>
+                e.Name.Contains(filterQuery, StringComparison.OrdinalIgnoreCase) ||
+                e.SetName.Contains(filterQuery, StringComparison.OrdinalIgnoreCase) ||
+                e.SetCode.Contains(filterQuery, StringComparison.OrdinalIgnoreCase));
+
+    private int     TotalCards      => collection.Sum(e => e.Quantity);
+    private int     UniqueCards     => collection.Count;
+    private string  EstimatedValue  => collection.Any(e => e.PriceUsd.HasValue)
+        ? "$" + collection.Sum(e => (e.PriceUsd ?? 0m) * e.Quantity).ToString("N2")
+        : "N/A";
+
+    // ── Quantity stepper ──────────────────────────────────────────────────────
+    private void Increment(CollectionEntry entry)
+    {
+        entry.Quantity++;
+        ToastService.Show($"Updated {entry.Name} to {entry.Quantity}×");
+    }
+
+    private void Decrement(CollectionEntry entry)
+    {
+        if (entry.Quantity > 1)
+        {
+            entry.Quantity--;
+            ToastService.Show($"Updated {entry.Name} to {entry.Quantity}×");
+        }
+    }
+}

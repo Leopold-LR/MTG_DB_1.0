@@ -242,10 +242,60 @@
                             </div>
 
                             <div class="actions-section">
-                                <button class="action-btn primary" @onclick="AddToCollection">+ Add to Collection</button>
+                                <button class="action-btn primary" @onclick="ToggleCollectionForm">
+                                    @if (showCollectionForm)
+                                    {
+                                        <span>✕ Cancel</span>
+                                    }
+                                    else
+                                    {
+                                        <span>+ Add to Collection</span>
+                                    }
+                                </button>
                                 <button class="action-btn secondary" @onclick="AddToDeck">+ Add to Deck</button>
                                 <button class="action-btn tertiary" @onclick="ShareCard">📤 Share</button>
                             </div>
+
+                            @if (showCollectionForm)
+                            {
+                                <div class="add-collection-form">
+                                    <div class="form-row">
+                                        <div class="form-field">
+                                            <label class="form-label">Condition</label>
+                                            <select class="form-select" @bind="addCondition">
+                                                <option value="NM">NM — Near Mint</option>
+                                                <option value="LP">LP — Lightly Played</option>
+                                                <option value="MP">MP — Moderately Played</option>
+                                                <option value="HP">HP — Heavily Played</option>
+                                                <option value="DMG">DMG — Damaged</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-field form-field-qty">
+                                            <label class="form-label">Qty</label>
+                                            <div class="add-qty-stepper">
+                                                <button class="add-qty-btn" @onclick="DecrementAddQty" disabled="@(addQuantity <= 1)">−</button>
+                                                <span class="add-qty-val">@addQuantity</span>
+                                                <button class="add-qty-btn" @onclick="IncrementAddQty">+</button>
+                                            </div>
+                                        </div>
+                                        <div class="form-field form-field-foil">
+                                            <label class="form-label">Foil</label>
+                                            <label class="foil-toggle">
+                                                <input type="checkbox" @bind="addIsFoil" />
+                                                <span class="foil-toggle-track">
+                                                    <span class="foil-toggle-thumb"></span>
+                                                </span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <button class="add-confirm-btn" @onclick="ConfirmAddToCollection">
+                                        <svg viewBox="0 0 20 20" fill="currentColor" width="16" height="16">
+                                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                        </svg>
+                                        Add @addQuantity× @(addIsFoil ? "Foil" : "") @(addCondition) to Collection
+                                    </button>
+                                </div>
+                            }
                         }
 
                         @* ── Prices ── *@
@@ -625,7 +675,33 @@
         selectedPrintImageUrl = null;
     }
 
-    private void AddToCollection() => JS.InvokeVoidAsync("alert", $"Added {card?.Name} to collection!");
-    private void AddToDeck()       => JS.InvokeVoidAsync("alert", $"Added {card?.Name} to deck!");
-    private void ShareCard()       => JS.InvokeVoidAsync("alert", $"Share link for {card?.Name} copied!");
+    // ── Add to Collection form ─────────────────────────────────────────────
+    private bool   showCollectionForm = false;
+    private string addCondition       = "NM";
+    private int    addQuantity        = 1;
+    private bool   addIsFoil          = false;
+
+    private void ToggleCollectionForm()
+    {
+        showCollectionForm = !showCollectionForm;
+        if (showCollectionForm)
+        {
+            addCondition = "NM";
+            addQuantity  = 1;
+            addIsFoil    = false;
+        }
+    }
+
+    private void IncrementAddQty() => addQuantity++;
+    private void DecrementAddQty() { if (addQuantity > 1) addQuantity--; }
+
+    private void ConfirmAddToCollection()
+    {
+        showCollectionForm = false;
+        var foilLabel = addIsFoil ? " (Foil)" : "";
+        ToastService.Show($"Added {addQuantity}× {card?.Name}{foilLabel} [{addCondition}] to collection!");
+    }
+
+    private void AddToDeck()  => ToastService.Show($"Deck builder coming soon!");
+    private void ShareCard()  => JS.InvokeVoidAsync("navigator.clipboard.writeText", Navigation.Uri);
 }
