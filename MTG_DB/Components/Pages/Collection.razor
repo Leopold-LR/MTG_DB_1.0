@@ -558,7 +558,7 @@
             }
             else if (ActiveGroup.Type == "Binder")
             {
-                <!-- ── BINDER VIEW: grouped by set ───────────────────────────── -->
+                <!-- ── BINDER VIEW: paginated binder pockets ─────────────────── -->
                 <div class="collection-toolbar">
                     <div class="collection-search-box">
                         <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -566,12 +566,12 @@
                             <line x1="21" y1="21" x2="16.65" y2="16.65"/>
                         </svg>
                         <input class="collection-search-input"
-                               @bind="filterQuery"
-                               @bind:event="oninput"
+                               value="@filterQuery"
+                               @oninput="OnBinderFilterInput"
                                placeholder="Search @ActiveGroup.Name..." />
                         @if (!string.IsNullOrEmpty(filterQuery))
                         {
-                            <button class="clear-filter-btn" @onclick='() => filterQuery = ""'>
+                            <button class="clear-filter-btn" @onclick='() => { filterQuery = ""; binderPage = 0; }'>
                                 <svg viewBox="0 0 20 20" fill="currentColor" width="14" height="14">
                                     <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
                                 </svg>
@@ -586,59 +586,84 @@
                     <div class="no-results-state">
                         <div class="no-results-icon">🔍</div>
                         <p>No cards match <strong>"@filterQuery"</strong></p>
-                        <button class="clear-search-btn" @onclick='() => filterQuery = ""'>Clear search</button>
+                        <button class="clear-search-btn" @onclick='() => { filterQuery = ""; binderPage = 0; }'>Clear search</button>
                     </div>
                 }
                 else
                 {
-                    @foreach (var setGroup in FilteredCollection.GroupBy(c => c.SetName).OrderBy(g => g.Key))
-                    {
-                        var setQty = setGroup.Sum(c => c.Quantity);
-                        <div class="set-group-header">
-                            <span class="set-code-badge">@setGroup.First().SetCode.ToUpper()</span>
-                            <span class="set-name-label">@setGroup.Key</span>
-                            <span class="set-card-count">@setQty card@(setQty == 1 ? "" : "s")</span>
+                    var pageCards  = FilteredCollection.Skip(binderPage * BinderCardsPerPage).Take(BinderCardsPerPage).ToList();
+                    var totalPages = (int)Math.Ceiling(FilteredCollection.Count() / (double)BinderCardsPerPage);
+
+                    <div class="binder-outer">
+                        <!-- Rings spine -->
+                        <div class="binder-spine">
+                            <div class="binder-ring"></div>
+                            <div class="binder-ring"></div>
+                            <div class="binder-ring"></div>
                         </div>
-                        <div class="collection-grid binder-grid">
-                            @foreach (var entry in setGroup)
-                            {
-                                <div class="col-card @(entry.IsFoil ? "col-card-foil" : "")">
-                                    <div class="col-image-wrap">
-                                        @if (!string.IsNullOrEmpty(entry.ImageUrl))
+
+                        <!-- Page (keyed so animation fires on page change) -->
+                        <div class="binder-page" @key="binderPage">
+                            <div class="binder-page-top">
+                                <span class="binder-page-num">Page @(binderPage + 1) / @totalPages</span>
+                            </div>
+
+                            <!-- 3×3 pocket grid -->
+                            <div class="binder-pockets">
+                                @for (int i = 0; i < BinderCardsPerPage; i++)
+                                {
+                                    var slotIdx = i;
+                                    var entry   = slotIdx < pageCards.Count ? pageCards[slotIdx] : null;
+                                    <div class="binder-pocket @(entry == null ? "binder-pocket-empty" : "") @(entry?.IsFoil == true ? "binder-pocket-foil" : "")">
+                                        @if (entry != null)
                                         {
-                                            <img src="@entry.ImageUrl" class="col-card-img" alt="@entry.Name" loading="lazy" />
-                                        }
-                                        else
-                                        {
-                                            <div class="col-no-image"><span>🃏</span></div>
-                                        }
-                                        @if (entry.IsFoil)
-                                        {
-                                            <div class="foil-overlay"></div>
-                                            <div class="foil-badge">✦ Foil</div>
-                                        }
-                                        <!-- Prominent condition badge overlaid on image -->
-                                        <div class="binder-condition-overlay condition-@entry.Condition.ToLower()">@entry.Condition</div>
-                                    </div>
-                                    <div class="col-card-body">
-                                        <h3 class="col-card-name">@entry.Name</h3>
-                                        <div class="col-card-meta">
-                                            <span class="col-set-name">@entry.SetName</span>
-                                            <span class="col-set-code">@entry.SetCode.ToUpper()</span>
-                                        </div>
-                                        <div class="col-card-footer">
-                                            <span class="condition-badge condition-badge-lg condition-@entry.Condition.ToLower()">@entry.Condition</span>
-                                            <div class="qty-stepper">
-                                                <button class="qty-btn" @onclick="() => Decrement(entry)" disabled="@(entry.Quantity <= 1)" title="Decrease">−</button>
-                                                <span class="qty-value" title="Quantity">@entry.Quantity×</span>
-                                                <button class="qty-btn" @onclick="() => Increment(entry)" title="Increase">+</button>
+                                            <div class="pocket-inner">
+                                                @if (!string.IsNullOrEmpty(entry.ImageUrl))
+                                                {
+                                                    <img src="@entry.ImageUrl" class="pocket-card-img" alt="@entry.Name" loading="lazy" />
+                                                }
+                                                else
+                                                {
+                                                    <div class="pocket-no-image"><span>🃏</span></div>
+                                                }
+                                                @if (entry.IsFoil)
+                                                {
+                                                    <div class="foil-overlay"></div>
+                                                }
+                                                <div class="pocket-condition condition-@entry.Condition.ToLower()">@entry.Condition</div>
+                                                @if (entry.Quantity > 1)
+                                                {
+                                                    <div class="pocket-qty"><span>×@entry.Quantity</span></div>
+                                                }
+                                                <div class="pocket-hover-info">
+                                                    <span class="pocket-card-name">@entry.Name</span>
+                                                    <span class="pocket-set-info">@entry.SetCode.ToUpper() · @entry.SetName</span>
+                                                    <div class="pocket-stepper">
+                                                        <button class="qty-btn" @onclick="() => Decrement(entry)" disabled="@(entry.Quantity <= 1)">−</button>
+                                                        <span class="qty-value">@entry.Quantity×</span>
+                                                        <button class="qty-btn" @onclick="() => Increment(entry)">+</button>
+                                                    </div>
+                                                </div>
                                             </div>
-                                        </div>
+                                        }
                                     </div>
+                                }
+                            </div>
+
+                            <!-- Page navigation -->
+                            <div class="binder-nav">
+                                <button class="binder-nav-btn" @onclick="BinderPrevPage" disabled="@(binderPage == 0)">← Prev</button>
+                                <div class="binder-page-dots">
+                                    @for (int p = 0; p < totalPages; p++)
+                                    {
+                                        var pi = p;
+                                        <button class="binder-dot @(pi == binderPage ? "binder-dot-active" : "")" @onclick="() => BinderGoToPage(pi)"></button>
+                                    }
                                 </div>
-                            }
+                                <button class="binder-nav-btn" @onclick="BinderNextPage" disabled="@(binderPage >= totalPages - 1)">Next →</button>
+                            </div>
                         </div>
-                    }
+                    </div>
                 }
             }
             else
@@ -776,6 +801,10 @@
     // Delete confirmation
     private string? pendingDeleteKey = null;
 
+    // Binder pagination
+    private int binderPage = 0;
+    private const int BinderCardsPerPage = 9;
+
     private static readonly string[] availableIcons = new[]
     {
         "📦", "📗", "📘", "📙", "📕", "🎴", "🃏", "⚔️", "🛡️",
@@ -877,12 +906,34 @@
         selectedCollectionKey = key;
         filterQuery = "";
         pendingDeleteKey = null;
+        binderPage = 0;
     }
 
     private void CloseCollection()
     {
         selectedCollectionKey = null;
         filterQuery = "";
+        binderPage = 0;
+    }
+
+    // ── Binder pagination ──────────────────────────────────────────────────────
+    private void BinderPrevPage()
+    {
+        if (binderPage > 0) binderPage--;
+    }
+
+    private void BinderNextPage()
+    {
+        var totalPages = (int)Math.Ceiling(FilteredCollection.Count() / (double)BinderCardsPerPage);
+        if (binderPage < totalPages - 1) binderPage++;
+    }
+
+    private void BinderGoToPage(int page) => binderPage = page;
+
+    private void OnBinderFilterInput(ChangeEventArgs e)
+    {
+        filterQuery = e.Value?.ToString() ?? "";
+        binderPage = 0;
     }
 
     // ── Create collection modal ────────────────────────────────────────────────

@@ -1393,6 +1393,396 @@ h1:focus {
 .global-error-icon { font-size: 3rem; }
 .global-error-reload { color: var(--gold-bright); }
 
+/* ============================================================
+   BINDER VIEW — Physical binder aesthetic with rings & pockets
+   ============================================================ */
+
+.binder-outer {
+    display: flex;
+    align-items: stretch;
+    background: #161624;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.55), 0 2px 8px rgba(0,0,0,0.4);
+    margin: 1.25rem 0 2rem;
+    min-height: 580px;
+}
+
+/* Left spine with rings */
+.binder-spine {
+    width: 54px;
+    background: linear-gradient(180deg, #252535 0%, #1c1c2c 50%, #252535 100%);
+    border-right: 2px solid rgba(255,255,255,0.05);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-evenly;
+    padding: 3.5rem 0;
+    flex-shrink: 0;
+    position: relative;
+}
+
+.binder-spine::before {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 6px;
+    background: linear-gradient(90deg, transparent, rgba(0,0,0,0.35));
+    pointer-events: none;
+}
+
+.binder-ring {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: 3px solid rgba(255,255,255,0.08);
+    background: radial-gradient(circle at 38% 32%, #7a7a8a 0%, #3a3a4a 45%, #1a1a26 100%);
+    box-shadow:
+        0 3px 6px rgba(0,0,0,0.7),
+        inset 0 1px 0 rgba(255,255,255,0.18),
+        inset 0 -1px 0 rgba(0,0,0,0.5);
+    position: relative;
+    flex-shrink: 0;
+}
+
+.binder-ring::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 40% 35%, #3a3a4a, #0d0d18);
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.9), 0 0 0 1px rgba(255,255,255,0.04);
+}
+
+/* Page area */
+.binder-page {
+    flex: 1;
+    background: linear-gradient(155deg, #1d1f32 0%, #181a2c 60%, #1a1c30 100%);
+    padding: 1.25rem 1.5rem 1rem 1.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    position: relative;
+    animation: binderPageFlip 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    transform-origin: left center;
+}
+
+/* Binding shadow */
+.binder-page::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 20px;
+    background: linear-gradient(90deg, rgba(0,0,0,0.28) 0%, transparent 100%);
+    pointer-events: none;
+}
+
+/* Subtle page texture lines */
+.binder-page::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 28px,
+        rgba(255,255,255,0.012) 28px,
+        rgba(255,255,255,0.012) 29px
+    );
+    pointer-events: none;
+}
+
+@keyframes binderPageFlip {
+    from {
+        opacity: 0;
+        transform: perspective(1000px) rotateY(-12deg) translateX(-8px);
+    }
+    to {
+        opacity: 1;
+        transform: perspective(1000px) rotateY(0deg) translateX(0);
+    }
+}
+
+.binder-page-top {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-bottom: 0.6rem;
+    border-bottom: 1px solid rgba(255,255,255,0.055);
+    position: relative;
+    z-index: 1;
+}
+
+.binder-page-num {
+    font-size: 0.68rem;
+    color: var(--text-faint);
+    font-family: var(--font-mono, monospace);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+/* 3×3 pocket grid */
+.binder-pockets {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.85rem;
+    flex: 1;
+    position: relative;
+    z-index: 1;
+}
+
+/* Individual pocket slot */
+.binder-pocket {
+    position: relative;
+    aspect-ratio: 63 / 88;
+    border-radius: 7px;
+    background: rgba(0,0,0,0.25);
+    border: 1.5px solid rgba(255,255,255,0.09);
+    overflow: hidden;
+    transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
+    cursor: pointer;
+    /* Subtle inner groove — mimics clear plastic sleeve */
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.04), inset 0 -1px 0 rgba(0,0,0,0.3);
+}
+
+.binder-pocket:hover {
+    transform: translateY(-3px) scale(1.025);
+    box-shadow:
+        0 8px 24px rgba(0,0,0,0.5),
+        inset 0 1px 0 rgba(255,255,255,0.08);
+    border-color: rgba(255,255,255,0.18);
+    z-index: 5;
+}
+
+/* Foil pocket glow */
+.binder-pocket-foil {
+    background: linear-gradient(135deg, rgba(255,210,60,0.07), rgba(100,200,255,0.07));
+    border-color: rgba(255,220,80,0.22);
+}
+
+.binder-pocket-foil:hover {
+    border-color: rgba(255,220,80,0.45);
+    box-shadow: 0 8px 28px rgba(255,200,50,0.18), inset 0 1px 0 rgba(255,220,80,0.1);
+}
+
+/* Empty pocket */
+.binder-pocket-empty {
+    background: rgba(255,255,255,0.015);
+    border: 1.5px dashed rgba(255,255,255,0.06);
+    cursor: default;
+}
+
+.binder-pocket-empty:hover {
+    transform: none;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.04), inset 0 -1px 0 rgba(0,0,0,0.3);
+    border-color: rgba(255,255,255,0.06);
+}
+
+/* Card inside pocket */
+.pocket-inner {
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+
+.pocket-card-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    border-radius: 5px;
+    transition: transform 0.18s ease;
+}
+
+.binder-pocket:hover .pocket-card-img {
+    transform: scale(1.04);
+}
+
+.pocket-no-image {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.2rem;
+    background: rgba(255,255,255,0.03);
+    color: var(--text-faint);
+}
+
+/* Condition badge — top-left corner */
+.pocket-condition {
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    font-size: 0.54rem;
+    font-weight: 800;
+    padding: 2px 5px;
+    border-radius: 4px;
+    letter-spacing: 0.05em;
+    line-height: 1.3;
+    backdrop-filter: blur(6px);
+    z-index: 2;
+}
+
+/* Quantity badge — bottom-right corner */
+.pocket-qty {
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
+    z-index: 2;
+}
+
+.pocket-qty span {
+    display: inline-block;
+    background: rgba(236,201,75,0.88);
+    color: #0a0a14;
+    font-size: 0.6rem;
+    font-weight: 800;
+    padding: 1px 5px;
+    border-radius: 10px;
+    backdrop-filter: blur(4px);
+    letter-spacing: 0.02em;
+}
+
+/* Hover overlay — card info */
+.pocket-hover-info {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(0deg,
+        rgba(0,0,0,0.92) 0%,
+        rgba(0,0,0,0.65) 55%,
+        transparent 100%
+    );
+    padding: 3rem 0.45rem 0.45rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.12rem;
+    opacity: 0;
+    transition: opacity 0.18s ease;
+    border-radius: 0 0 5px 5px;
+    z-index: 3;
+}
+
+.binder-pocket:hover .pocket-hover-info {
+    opacity: 1;
+}
+
+.pocket-card-name {
+    font-size: 0.6rem;
+    font-weight: 700;
+    color: #fff;
+    line-height: 1.25;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+}
+
+.pocket-set-info {
+    font-size: 0.52rem;
+    color: rgba(255,255,255,0.5);
+    font-family: var(--font-mono, monospace);
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.pocket-stepper {
+    display: flex;
+    align-items: center;
+    gap: 0.2rem;
+    margin-top: 0.25rem;
+}
+
+.pocket-stepper .qty-btn {
+    padding: 0.1rem 0.35rem;
+    font-size: 0.7rem;
+}
+
+.pocket-stepper .qty-value {
+    font-size: 0.62rem;
+    min-width: 1.4rem;
+    text-align: center;
+}
+
+/* Navigation bar */
+.binder-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 0.8rem;
+    border-top: 1px solid rgba(255,255,255,0.055);
+    gap: 1rem;
+    position: relative;
+    z-index: 1;
+}
+
+.binder-nav-btn {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 6px;
+    color: var(--text-secondary);
+    font-size: 0.76rem;
+    font-weight: 600;
+    padding: 0.35rem 0.9rem;
+    cursor: pointer;
+    transition: background 0.14s, color 0.14s, border-color 0.14s;
+    white-space: nowrap;
+    letter-spacing: 0.02em;
+    font-family: inherit;
+}
+
+.binder-nav-btn:hover:not(:disabled) {
+    background: rgba(236,201,75,0.1);
+    color: var(--gold-bright);
+    border-color: rgba(236,201,75,0.3);
+}
+
+.binder-nav-btn:disabled {
+    opacity: 0.2;
+    cursor: not-allowed;
+}
+
+.binder-page-dots {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.binder-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.16);
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    transition: background 0.14s, transform 0.14s;
+}
+
+.binder-dot:hover {
+    background: rgba(255,255,255,0.35);
+    transform: scale(1.25);
+}
+
+.binder-dot-active {
+    background: var(--gold-bright, #ecc94b);
+    transform: scale(1.2);
+}
+
 /* ── Responsive ── */
 @media (max-width: 640px) {
     .col-header-inner {
