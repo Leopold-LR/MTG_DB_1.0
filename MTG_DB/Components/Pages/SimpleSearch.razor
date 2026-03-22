@@ -66,57 +66,112 @@
         else if (allCards.Count > 0)
         {
             <div class="results-header">
-                <h2>@totalCards cards found</h2>
-                <small>Page @currentPage of @TotalPages &nbsp;·&nbsp; Hover over 🔄 cards to see both sides</small>
+                <div class="results-header-left">
+                    <h2>@totalCards cards found</h2>
+                    <small>Page @currentPage of @TotalPages &nbsp;·&nbsp; Hover over 🔄 cards to see both sides</small>
+                </div>
+                <div class="view-toggle-group">
+                    <button class="view-toggle-btn @(viewMode == "grid" ? "active" : "")" @onclick='() => SetViewMode("grid")' title="Grid view">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                            <rect x="0" y="0" width="6" height="6" rx="1"/>
+                            <rect x="10" y="0" width="6" height="6" rx="1"/>
+                            <rect x="0" y="10" width="6" height="6" rx="1"/>
+                            <rect x="10" y="10" width="6" height="6" rx="1"/>
+                        </svg>
+                        Grid
+                    </button>
+                    <button class="view-toggle-btn @(viewMode == "list" ? "active" : "")" @onclick='() => SetViewMode("list")' title="List view">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                            <rect x="0" y="1" width="16" height="2" rx="1"/>
+                            <rect x="0" y="7" width="16" height="2" rx="1"/>
+                            <rect x="0" y="13" width="16" height="2" rx="1"/>
+                        </svg>
+                        List
+                    </button>
+                </div>
             </div>
 
-            <div class="cards-grid">
-                @foreach (var card in PagedCards)
-                {
-                    <div class="card-item @GetRarityClass(card.Rarity)" @onclick="() => ShowCardDetails(card)">
-                        <div class="card-image-container @(IsDoubleFacedCard(card) ? "dfc-container" : "")">
-                            @if (IsDoubleFacedCard(card))
-                            {
-                                <div class="dfc-indicator">🔄</div>
-                                @if (card.CardFaces.Count > 0 && !string.IsNullOrEmpty(card.CardFaces[0].ImageUris?.Normal))
-                                {
-                                    <img src="@card.CardFaces[0].ImageUris.Normal" class="card-image dfc-front" alt="@card.CardFaces[0].Name" />
-                                }
-                                @if (card.CardFaces.Count > 1 && !string.IsNullOrEmpty(card.CardFaces[1].ImageUris?.Normal))
-                                {
-                                    <img src="@card.CardFaces[1].ImageUris.Normal" class="card-image dfc-back" alt="@card.CardFaces[1].Name" />
-                                }
-                            }
-                            else if (!string.IsNullOrEmpty(GetCardImage(card)))
-                            {
-                                <img src="@GetCardImage(card)" class="card-image" alt="@card.Name" />
-                            }
-                            else
-                            {
-                                <div class="no-image">
-                                    <span>🃏</span>
-                                    <p>No image</p>
-                                </div>
-                            }
-                        </div>
-
-                        <div class="card-info">
-                            <h3 class="card-name">
-                                @card.Name
+            @if (viewMode == "grid")
+            {
+                <div class="cards-grid">
+                    @foreach (var card in PagedCards)
+                    {
+                        <div class="card-item @GetRarityClass(card.Rarity)" @onclick="() => ShowCardDetails(card)">
+                            <div class="card-image-container @(IsDoubleFacedCard(card) ? "dfc-container" : "")">
                                 @if (IsDoubleFacedCard(card))
                                 {
-                                    <span class="dfc-badge">🔄</span>
+                                    <div class="dfc-indicator">🔄</div>
+                                    @if (card.CardFaces.Count > 0 && !string.IsNullOrEmpty(card.CardFaces[0].ImageUris?.Normal))
+                                    {
+                                        <img src="@card.CardFaces[0].ImageUris.Normal" class="card-image dfc-front" alt="@card.CardFaces[0].Name" />
+                                    }
+                                    @if (card.CardFaces.Count > 1 && !string.IsNullOrEmpty(card.CardFaces[1].ImageUris?.Normal))
+                                    {
+                                        <img src="@card.CardFaces[1].ImageUris.Normal" class="card-image dfc-back" alt="@card.CardFaces[1].Name" />
+                                    }
                                 }
-                            </h3>
-                            <div class="card-details">
-                                <span class="card-set">@card.SetName</span>
-                                <span class="card-rarity">@GetRarityDisplay(card.Rarity)</span>
+                                else if (!string.IsNullOrEmpty(GetCardImage(card)))
+                                {
+                                    <img src="@GetCardImage(card)" class="card-image" alt="@card.Name" />
+                                }
+                                else
+                                {
+                                    <div class="no-image">
+                                        <span>🃏</span>
+                                        <p>No image</p>
+                                    </div>
+                                }
                             </div>
-                            <div class="card-price">@FormatUsd(card.Prices?.Usd)</div>
+
+                            <div class="card-info">
+                                <h3 class="card-name">
+                                    @card.Name
+                                    @if (IsDoubleFacedCard(card))
+                                    {
+                                        <span class="dfc-badge">🔄</span>
+                                    }
+                                </h3>
+                                <div class="card-details">
+                                    <span class="card-set">@card.SetName</span>
+                                    <span class="card-rarity">@GetRarityDisplay(card.Rarity)</span>
+                                </div>
+                                <div class="card-price">@FormatUsd(card.Prices?.Usd)</div>
+                            </div>
                         </div>
-                    </div>
-                }
-            </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="cards-list">
+                    <table class="list-table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Set</th>
+                                <th>Type</th>
+                                <th>Rarity</th>
+                                <th>Price</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var card in PagedCards)
+                            {
+                                <tr class="list-row @GetRarityClass(card.Rarity)" @onclick="() => ShowCardDetails(card)">
+                                    <td class="list-name">
+                                        @card.Name
+                                        @if (IsDoubleFacedCard(card)) { <span class="dfc-badge">🔄</span> }
+                                    </td>
+                                    <td class="list-set">@card.SetName</td>
+                                    <td class="list-type">@(card.TypeLine ?? "—")</td>
+                                    <td class="list-rarity"><span class="rarity-pill rarity-pill-@card.Rarity?.ToLower()">@GetRarityDisplay(card.Rarity)</span></td>
+                                    <td class="list-price">@FormatUsd(card.Prices?.Usd)</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
 
             <div class="pagination">
                 <button class="page-btn" @onclick="PrevPage" disabled="@(!CanGoPrev)">← Previous</button>
@@ -161,6 +216,8 @@
     private bool isLoadingMore;
     private bool hasSearched;
     private string? errorMessage;
+    private string viewMode = "grid";
+    private bool viewModeLoaded;
 
     // Pagination state
     private int currentPage = 1;
@@ -175,6 +232,26 @@
         : (int)Math.Ceiling(allCards.Count / (double)pageSize);
     private bool CanGoPrev => currentPage > 1;
     private bool CanGoNext => currentPage < TotalPages || hasMore;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && !viewModeLoaded)
+        {
+            viewModeLoaded = true;
+            var saved = await JS.InvokeAsync<string?>("localStorage.getItem", "mtghub_view");
+            if (saved == "list" || saved == "grid")
+            {
+                viewMode = saved;
+                StateHasChanged();
+            }
+        }
+    }
+
+    private async Task SetViewMode(string mode)
+    {
+        viewMode = mode;
+        await JS.InvokeVoidAsync("localStorage.setItem", "mtghub_view", mode);
+    }
 
     protected override async Task OnParametersSetAsync()
     {
