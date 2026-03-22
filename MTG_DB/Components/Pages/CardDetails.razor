@@ -5,6 +5,7 @@
 @using MtgInventoryApp.Services
 @inject MtgInventoryApp.Services.ScryfallService Scryfall
 @inject MtgInventoryApp.Services.CryptMtgService CryptMtg
+@inject MtgInventoryApp.Services.SettingsService Settings
 @inject ToastService ToastService
 @inject NavigationManager Navigation
 @inject IJSRuntime JS
@@ -313,13 +314,13 @@
                                     </thead>
                                     <tbody>
                                         <tr>
-                                            <td>USD</td>
-                                            <td>@FormatPrice(card.Prices?.Usd, "$")</td>
-                                            <td>@FormatPrice(card.Prices?.UsdFoil, "$")</td>
+                                            <td>@(Settings.IsCAD ? "CAD (est.)" : "USD")</td>
+                                            <td>@Settings.FormatUsdPrice(card.Prices?.Usd)</td>
+                                            <td>@Settings.FormatUsdPrice(card.Prices?.UsdFoil)</td>
                                         </tr>
                                         <tr>
-                                            <td>USD Etched</td>
-                                            <td>@FormatPrice(card.Prices?.UsdEtched, "$")</td>
+                                            <td>@(Settings.IsCAD ? "CAD Etched (est.)" : "USD Etched")</td>
+                                            <td>@Settings.FormatUsdPrice(card.Prices?.UsdEtched)</td>
                                             <td>—</td>
                                         </tr>
                                         <tr>
@@ -459,7 +460,7 @@
                                                 <div class="print-num">#@print.CollectorNumber · @GetRarityDisplay(print.Rarity)</div>
                                                 @if (!string.IsNullOrEmpty(print.Prices?.Usd))
                                                 {
-                                                    <div class="print-price">$@print.Prices.Usd</div>
+                                                    <div class="print-price">@Settings.FormatUsdPrice(print.Prices.Usd)</div>
                                                 }
                                                 <div class="print-actions">
                                                     <button class="print-navigate-btn" @onclick:stopPropagation="true" @onclick="() => NavigateToCard(printId)">View card →</button>
@@ -522,6 +523,15 @@
             await LoadCardData();
         else
             isLoading = false;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await Settings.LoadAsync(JS);
+            StateHasChanged();
+        }
     }
 
     private async Task LoadCardData()

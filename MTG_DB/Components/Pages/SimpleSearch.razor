@@ -2,6 +2,7 @@
 @using MtgInventoryApp.Models
 @using MtgInventoryApp.Services
 @inject MtgInventoryApp.Services.ScryfallService Scryfall
+@inject MtgInventoryApp.Services.SettingsService Settings
 @inject ToastService ToastService
 @inject IJSRuntime JS
 @inject NavigationManager Navigation
@@ -246,12 +247,13 @@
         if (firstRender && !viewModeLoaded)
         {
             viewModeLoaded = true;
+            await Settings.LoadAsync(JS);
             var saved = await JS.InvokeAsync<string?>("localStorage.getItem", "mtghub_view");
             if (saved == "list" || saved == "grid")
             {
                 viewMode = saved;
-                StateHasChanged();
             }
+            StateHasChanged();
         }
     }
 
@@ -388,7 +390,8 @@
         return card.ImageUris?.Normal ?? "";
     }
 
-    private static string FormatUsd(string? usd) => string.IsNullOrWhiteSpace(usd) ? "Price N/A" : $"${usd}";
+    private string FormatUsd(string? usd) =>
+        string.IsNullOrWhiteSpace(usd) ? "Price N/A" : Settings.FormatUsdPrice(usd);
 
     private string GetRarityClass(string? rarity) => rarity?.ToLower() switch
     {

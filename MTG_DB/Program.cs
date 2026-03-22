@@ -7,6 +7,7 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
 builder.Services.AddScoped<ToastService>();
+builder.Services.AddScoped<SettingsService>();
 builder.Services.AddMemoryCache();
 
 builder.Services.AddHttpClient<ScryfallService>(client =>
