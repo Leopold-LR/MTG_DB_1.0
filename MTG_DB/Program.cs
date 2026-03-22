@@ -1,4 +1,6 @@
-﻿using MTG_DB.Components;
+using Microsoft.EntityFrameworkCore;
+using MTG_DB.Components;
+using MTG_DB.Data;
 using MtgInventoryApp.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -24,7 +26,19 @@ builder.Services.AddHttpClient<CryptMtgService>(client =>
     client.DefaultRequestHeaders.Add("Accept", "application/json");
 });
 
+builder.Services.AddDbContext<CollectionDbContext>(options =>
+    options.UseSqlite("Data Source=mtg_collections.db"));
+
+builder.Services.AddScoped<CollectionService>();
+
 var app = builder.Build();
+
+// Ensure SQLite database and schema are created on startup
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<CollectionDbContext>();
+    db.Database.EnsureCreated();
+}
 
 if (!app.Environment.IsDevelopment())
 {

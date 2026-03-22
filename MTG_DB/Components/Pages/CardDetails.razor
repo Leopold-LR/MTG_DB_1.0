@@ -9,6 +9,7 @@
 @inject ToastService ToastService
 @inject NavigationManager Navigation
 @inject IJSRuntime JS
+@inject CollectionService CollectionSvc
 
 <PageTitle>MTGHUB - @(card?.Name ?? "Card Details")</PageTitle>
 
@@ -289,6 +290,18 @@
                                             </label>
                                         </div>
                                     </div>
+                                    @if (collectionPickList.Count > 0)
+                                    {
+                                        <div class="form-field" style="margin-bottom:0.5rem;">
+                                            <label class="form-label">Collection</label>
+                                            <select class="form-select" @bind="addToCollectionId">
+                                                @foreach (var col in collectionPickList)
+                                                {
+                                                    <option value="@col.Id">@col.Icon @col.Name</option>
+                                                }
+                                            </select>
+                                        </div>
+                                    }
                                     <button class="add-confirm-btn" @onclick="ConfirmAddToCollection">
                                         <svg viewBox="0 0 20 20" fill="currentColor" width="16" height="16">
                                             <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
@@ -690,26 +703,67 @@
     private string addCondition       = "NM";
     private int    addQuantity        = 1;
     private bool   addIsFoil          = false;
+    private int    addToCollectionId  = 0;
 
-    private void ToggleCollectionForm()
+    // Available collections for the picker (loaded when form opens)
+    private List<MtgCollection> collectionPickList = new();
+
+    private async Task ToggleCollectionForm()
     {
         showCollectionForm = !showCollectionForm;
         if (showCollectionForm)
         {
-            addCondition = "NM";
-            addQuantity  = 1;
-            addIsFoil    = false;
+            addCondition      = "NM";
+            addQuantity       = 1;
+            addIsFoil         = false;
+            collectionPickList = await CollectionSvc.GetAllCollectionsAsync();
+            addToCollectionId  = collectionPickList.Count > 0 ? collectionPickList[0].Id : 0;
         }
     }
 
     private void IncrementAddQty() => addQuantity++;
     private void DecrementAddQty() { if (addQuantity > 1) addQuantity--; }
 
-    private void ConfirmAddToCollection()
+    private async Task ConfirmAddToCollection()
     {
+        if (card == null) return;
+
+        var imageUrl = !string.IsNullOrEmpty(card.ImageUris?.Normal)
+            ? card.ImageUris.Normal
+            : (card.CardFaces?.FirstOrDefault()?.ImageUris?.Normal ?? string.Empty);
+
+        var entry = new MtgCollectionCard
+        {
+            CardScryfallId = card.Id,
+            Name           = card.Name,
+            SetCode        = card.Set,
+            SetName        = card.SetName,
+            ImageUrl       = imageUrl,
+            Condition      = addCondition,
+            IsFoil         = addIsFoil,
+            Quantity       = Math.Max(1, addQuantity),
+            PriceUsd       = decimal.TryParse(addIsFoil ? card.Prices?.UsdFoil : card.Prices?.Usd,
+                                 System.Globalization.NumberStyles.Any,
+                                 System.Globalization.CultureInfo.InvariantCulture, out var p) ? p : null,
+            Cmc            = (int)card.Cmc,
+            IsMainboard    = true,
+        };
+
+        int targetId = addToCollectionId > 0 ? addToCollectionId
+                       : (collectionPickList.Count > 0 ? collectionPickList[0].Id : 0);
+
+        if (targetId == 0)
+        {
+            ToastService.Show("No collection found — create one first.");
+            return;
+        }
+
+        await CollectionSvc.AddCardAsync(targetId, entry);
+
         showCollectionForm = false;
+        var collName = collectionPickList.FirstOrDefault(c => c.Id == targetId)?.Name ?? "collection";
         var foilLabel = addIsFoil ? " (Foil)" : "";
-        ToastService.Show($"Added {addQuantity}× {card?.Name}{foilLabel} [{addCondition}] to collection!");
+        ToastService.Show($"Added {addQuantity}× {card.Name}{foilLabel} to {collName}!");
     }
 
     private void AddToDeck()  => ToastService.Show($"Deck builder coming soon!");

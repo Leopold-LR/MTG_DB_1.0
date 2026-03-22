@@ -3,12 +3,14 @@
 @using MtgInventoryApp.Services
 @inject ToastService ToastService
 @inject NavigationManager Navigation
+@inject CollectionService CollectionSvc
+@using MTG_DB.Models
 
 <PageTitle>MTGHUB - Collections</PageTitle>
 
 <div class="collection-page">
 
-    @if (selectedCollectionKey == null)
+    @if (selectedCollectionId == null)
     {
         <!-- ══════════════════════════════════════════
              COLLECTIONS LIST VIEW
@@ -105,14 +107,14 @@
                         var maxQty       = allCollections.Max(g2 => g2.Cards.Sum(c => c.Quantity));
                         var fillPct      = maxQty > 0 ? (int)Math.Round((double)totalQty / maxQty * 100) : 0;
 
-                        <div class="collection-tile @(pendingDeleteKey == group.Key ? "tile-confirm-delete" : "")">
+                        <div class="collection-tile @(pendingDeleteKey == group.Id ? "tile-confirm-delete" : "")">
 
-                            @if (pendingDeleteKey == group.Key)
+                            @if (pendingDeleteKey == group.Id)
                             {
                                 <div class="tile-delete-confirm">
                                     <p class="tile-delete-msg">Delete <strong>@group.Name</strong>?</p>
                                     <div class="tile-delete-actions">
-                                        <button class="tile-delete-yes" @onclick="() => ConfirmDelete(group.Key)">Delete</button>
+                                        <button class="tile-delete-yes" @onclick="() => ConfirmDelete(group.Id)">Delete</button>
                                         <button class="tile-delete-no" @onclick="CancelDelete">Cancel</button>
                                     </div>
                                 </div>
@@ -126,14 +128,14 @@
                                 <span class="type-badge type-badge-@group.Type.ToLower()">@group.Type</span>
 
                                 <!-- Delete button (top-right) -->
-                                <button class="tile-delete-btn" @onclick="() => RequestDelete(group.Key)" title="Delete collection">
+                                <button class="tile-delete-btn" @onclick="() => RequestDelete(group.Id)" title="Delete collection">
                                     <svg viewBox="0 0 20 20" fill="currentColor" width="14" height="14">
                                         <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd"/>
                                     </svg>
                                 </button>
 
                                 <!-- Main clickable area -->
-                                <button class="tile-click-area" @onclick="() => OpenCollection(group.Key)">
+                                <button class="tile-click-area" @onclick="() => OpenCollection(group.Id)">
 
                                     <!-- Icon slab -->
                                     <div class="tile-icon-wrap">
@@ -746,33 +748,8 @@
 
 </div>
 
+
 @code {
-    // ── Collection entry model ────────────────────────────────────────────────
-    private class CollectionEntry
-    {
-        public string   Id          { get; set; } = Guid.NewGuid().ToString();
-        public string   Name        { get; set; } = "";
-        public string   SetName     { get; set; } = "";
-        public string   SetCode     { get; set; } = "";
-        public string?  ImageUrl    { get; set; }
-        public string   Condition   { get; set; } = "NM";
-        public bool     IsFoil      { get; set; }
-        public int      Quantity    { get; set; } = 1;
-        public decimal? PriceUsd    { get; set; }
-        public int      Cmc         { get; set; } = 0;
-        public bool     IsMainboard { get; set; } = true;
-    }
-
-    // ── Collection group model ─────────────────────────────────────────────────
-    private class CollectionGroup
-    {
-        public string Key   { get; set; } = "";
-        public string Name  { get; set; } = "";
-        public string Icon  { get; set; } = "";
-        public string Type  { get; set; } = "Bulk";
-        public List<CollectionEntry> Cards { get; set; } = new();
-    }
-
     // ── Type option descriptor ─────────────────────────────────────────────────
     private record TypeOption(string Name, string Icon, string Description);
 
@@ -783,12 +760,18 @@
         new TypeOption("Bulk",   "📦", "Unsorted bulk cards, trades, or storage"),
     };
 
+    private static readonly string[] availableIcons = new[]
+    {
+        "📦", "📗", "📘", "📙", "📕", "🎴", "🃏", "⚔️", "🛡️",
+        "🏆", "💎", "🌟", "✨", "🔮", "🧙", "🐉", "🌙", "⬡"
+    };
+
     // ── State ─────────────────────────────────────────────────────────────────
     private string filterQuery       = "";
     private string collectionSearch  = "";
     private string activeTypeFilter  = "All";
 
-    private string? selectedCollectionKey = null;
+    private int? selectedCollectionId = null;
 
     // Create modal
     private bool   showCreateModal    = false;
@@ -799,88 +782,33 @@
     private string createError        = "";
 
     // Delete confirmation
-    private string? pendingDeleteKey = null;
+    private int? pendingDeleteKey = null;
 
     // Binder pagination
     private int binderPage = 0;
     private const int BinderCardsPerPage = 9;
 
-    private static readonly string[] availableIcons = new[]
-    {
-        "📦", "📗", "📘", "📙", "📕", "🎴", "🃏", "⚔️", "🛡️",
-        "🏆", "💎", "🌟", "✨", "🔮", "🧙", "🐉", "🌙", "⬡"
-    };
+    // ── All collections (loaded from DB) ───────────────────────────────────────
+    private List<MtgCollection> allCollections = new();
 
-    // ── All collections ────────────────────────────────────────────────────────
-    private List<CollectionGroup> allCollections = new()
+    protected override async Task OnInitializedAsync()
     {
-        new()
-        {
-            Key = "bulk", Name = "Bulk", Icon = "📦", Type = "Bulk",
-            Cards = new()
-            {
-                new() { Name = "Lightning Bolt",   SetName = "Alpha",             SetCode = "LEA", Condition = "NM", IsFoil = false, Quantity = 4, PriceUsd = 1.50m,  Cmc = 1 },
-                new() { Name = "Counterspell",     SetName = "Masters Edition 4", SetCode = "ME4", Condition = "NM", IsFoil = false, Quantity = 4, PriceUsd = 1.25m,  Cmc = 2 },
-                new() { Name = "Sol Ring",         SetName = "Commander Masters", SetCode = "CMM", Condition = "MP", IsFoil = false, Quantity = 3, PriceUsd = 2.75m,  Cmc = 1 },
-            }
-        },
-        new()
-        {
-            Key = "binder1", Name = "Binder 1", Icon = "📗", Type = "Binder",
-            Cards = new()
-            {
-                new() { Name = "Black Lotus",   SetName = "Limited Edition Alpha", SetCode = "LEA", Condition = "NM", IsFoil = false, Quantity = 1, PriceUsd = 45000m, Cmc = 0 },
-                new() { Name = "Mox Diamond",   SetName = "Stronghold",            SetCode = "STH", Condition = "HP", IsFoil = false, Quantity = 1, PriceUsd = 220m,   Cmc = 0 },
-                new() { Name = "Force of Will", SetName = "Alliances",             SetCode = "ALL", Condition = "LP", IsFoil = false, Quantity = 2, PriceUsd = 75m,    Cmc = 5 },
-            }
-        },
-        new()
-        {
-            Key = "binder2", Name = "Binder 2", Icon = "📘", Type = "Binder",
-            Cards = new()
-            {
-                new() { Name = "Jace, the Mind Sculptor", SetName = "Worldwake",       SetCode = "WWK", Condition = "LP",  IsFoil = true,  Quantity = 2, PriceUsd = 55.99m, Cmc = 4 },
-                new() { Name = "Wrenn and Six",           SetName = "Modern Horizons", SetCode = "MH1", Condition = "DMG", IsFoil = false, Quantity = 1, PriceUsd = 45m,    Cmc = 2 },
-            }
-        },
-        new()
-        {
-            Key = "deck1", Name = "Deck 1", Icon = "🎴", Type = "Deck",
-            Cards = new()
-            {
-                new() { Name = "Ragavan, Nimble Pilferer", SetName = "Modern Horizons 2", SetCode = "MH2", Condition = "NM", Quantity = 3, PriceUsd = 40m,   Cmc = 1, IsMainboard = true  },
-                new() { Name = "Lightning Bolt",           SetName = "Alpha",             SetCode = "LEA", Condition = "NM", Quantity = 4, PriceUsd = 1.50m, Cmc = 1, IsMainboard = true  },
-                new() { Name = "Counterspell",             SetName = "Masters Edition 4", SetCode = "ME4", Condition = "NM", Quantity = 4, PriceUsd = 1.25m, Cmc = 2, IsMainboard = true  },
-                new() { Name = "Force of Will",            SetName = "Alliances",         SetCode = "ALL", Condition = "NM", Quantity = 4, PriceUsd = 75m,   Cmc = 5, IsMainboard = true  },
-                new() { Name = "Surgical Extraction",      SetName = "New Phyrexia",      SetCode = "NPH", Condition = "NM", Quantity = 2, PriceUsd = 3.50m, Cmc = 1, IsMainboard = false },
-            }
-        },
-        new()
-        {
-            Key = "deck2", Name = "Deck 2", Icon = "🃏", Type = "Deck",
-            Cards = new()
-            {
-                new() { Name = "Orcish Bowmasters", SetName = "Lord of the Rings", SetCode = "LTR", Condition = "NM", IsFoil = true,  Quantity = 2, PriceUsd = 22m,   Cmc = 2, IsMainboard = true  },
-                new() { Name = "Sol Ring",          SetName = "Commander Masters", SetCode = "CMM", Condition = "NM", IsFoil = true,  Quantity = 1, PriceUsd = 2.75m, Cmc = 1, IsMainboard = true  },
-                new() { Name = "Counterspell",      SetName = "Masters Edition 4", SetCode = "ME4", Condition = "NM", IsFoil = false, Quantity = 4, PriceUsd = 1.25m, Cmc = 2, IsMainboard = true  },
-                new() { Name = "Force of Nature",   SetName = "Revised Edition",   SetCode = "3ED", Condition = "LP", IsFoil = false, Quantity = 2, PriceUsd = 0.50m, Cmc = 6, IsMainboard = false },
-            }
-        },
-    };
+        allCollections = await CollectionSvc.GetAllCollectionsAsync();
+    }
 
     // ── Filtered collections list ──────────────────────────────────────────────
-    private IEnumerable<CollectionGroup> FilteredCollections =>
+    private IEnumerable<MtgCollection> FilteredCollections =>
         allCollections
             .Where(g => activeTypeFilter == "All" || g.Type == activeTypeFilter)
             .Where(g => string.IsNullOrWhiteSpace(collectionSearch) ||
                 g.Name.Contains(collectionSearch, StringComparison.OrdinalIgnoreCase));
 
     // ── Active group ───────────────────────────────────────────────────────────
-    private CollectionGroup ActiveGroup =>
-        allCollections.FirstOrDefault(g => g.Key == selectedCollectionKey) ?? allCollections[0];
+    private MtgCollection ActiveGroup =>
+        allCollections.FirstOrDefault(g => g.Id == selectedCollectionId) ?? allCollections[0];
 
     // ── Computed properties ────────────────────────────────────────────────────
-    private IEnumerable<CollectionEntry> FilteredCollection =>
+    private IEnumerable<MtgCollectionCard> FilteredCollection =>
         string.IsNullOrWhiteSpace(filterQuery)
             ? ActiveGroup.Cards
             : ActiveGroup.Cards.Where(e =>
@@ -888,10 +816,10 @@
                 e.SetName.Contains(filterQuery, StringComparison.OrdinalIgnoreCase) ||
                 e.SetCode.Contains(filterQuery, StringComparison.OrdinalIgnoreCase));
 
-    private IEnumerable<CollectionEntry> FilteredMainboard =>
+    private IEnumerable<MtgCollectionCard> FilteredMainboard =>
         FilteredCollection.Where(c => c.IsMainboard);
 
-    private IEnumerable<CollectionEntry> FilteredSideboard =>
+    private IEnumerable<MtgCollectionCard> FilteredSideboard =>
         FilteredCollection.Where(c => !c.IsMainboard);
 
     private int    TotalCards     => ActiveGroup.Cards.Sum(e => e.Quantity);
@@ -901,9 +829,9 @@
         : "N/A";
 
     // ── Navigation ─────────────────────────────────────────────────────────────
-    private void OpenCollection(string key)
+    private void OpenCollection(int id)
     {
-        selectedCollectionKey = key;
+        selectedCollectionId = id;
         filterQuery = "";
         pendingDeleteKey = null;
         binderPage = 0;
@@ -911,7 +839,7 @@
 
     private void CloseCollection()
     {
-        selectedCollectionKey = null;
+        selectedCollectionId = null;
         filterQuery = "";
         binderPage = 0;
     }
@@ -966,7 +894,7 @@
         modalStep = 2;
     }
 
-    private void CreateCollection()
+    private async Task CreateCollection()
     {
         var name = newCollectionName.Trim();
         if (string.IsNullOrEmpty(name)) return;
@@ -977,15 +905,8 @@
             return;
         }
 
-        var key = Guid.NewGuid().ToString("N")[..8];
-        allCollections.Add(new CollectionGroup
-        {
-            Key   = key,
-            Name  = name,
-            Icon  = newCollectionIcon,
-            Type  = newCollectionType,
-            Cards = new()
-        });
+        var col = await CollectionSvc.CreateCollectionAsync(name, newCollectionType, newCollectionIcon);
+        allCollections.Insert(0, col);
 
         ToastService.Show($"Created \"{name}\"");
         showCreateModal = false;
@@ -995,35 +916,38 @@
 
     private void OnModalKeyDown(KeyboardEventArgs e)
     {
-        if (e.Key == "Enter" && modalStep == 2) CreateCollection();
+        if (e.Key == "Enter" && modalStep == 2) _ = CreateCollection();
         if (e.Key == "Escape") CloseCreateModal();
     }
 
     // ── Delete collection ──────────────────────────────────────────────────────
-    private void RequestDelete(string key)  => pendingDeleteKey = key;
-    private void CancelDelete()             => pendingDeleteKey = null;
+    private void RequestDelete(int id)  => pendingDeleteKey = id;
+    private void CancelDelete()         => pendingDeleteKey = null;
 
-    private void ConfirmDelete(string key)
+    private async Task ConfirmDelete(int id)
     {
-        var group = allCollections.FirstOrDefault(g => g.Key == key);
+        var group = allCollections.FirstOrDefault(g => g.Id == id);
         if (group is null) return;
 
+        await CollectionSvc.DeleteCollectionAsync(id);
         allCollections.Remove(group);
         pendingDeleteKey = null;
         ToastService.Show($"Deleted \"{group.Name}\"");
     }
 
     // ── Quantity stepper ───────────────────────────────────────────────────────
-    private void Increment(CollectionEntry entry)
+    private async Task Increment(MtgCollectionCard entry)
     {
+        await CollectionSvc.UpdateQuantityAsync(entry.Id, +1);
         entry.Quantity++;
         ToastService.Show($"Updated {entry.Name} to {entry.Quantity}×");
     }
 
-    private void Decrement(CollectionEntry entry)
+    private async Task Decrement(MtgCollectionCard entry)
     {
         if (entry.Quantity > 1)
         {
+            await CollectionSvc.UpdateQuantityAsync(entry.Id, -1);
             entry.Quantity--;
             ToastService.Show($"Updated {entry.Name} to {entry.Quantity}×");
         }

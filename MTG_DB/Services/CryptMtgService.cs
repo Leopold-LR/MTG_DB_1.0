@@ -68,7 +68,8 @@ public class CryptMtgService
                 foreach (var v in variants)
                 {
                     var title = v.Title ?? "";
-                    bool isNm   = title.Contains("NM", StringComparison.OrdinalIgnoreCase);
+                    bool isNm   = title.Contains("Near Mint", StringComparison.OrdinalIgnoreCase)
+                               || title.Contains("NM", StringComparison.OrdinalIgnoreCase);
                     bool isFoil = title.Contains("foil", StringComparison.OrdinalIgnoreCase);
                     bool isFr   = title.Contains("french", StringComparison.OrdinalIgnoreCase)
                                || title.Contains(" FR ", StringComparison.OrdinalIgnoreCase)
@@ -76,10 +77,9 @@ public class CryptMtgService
 
                     if (isFr) hasFrench = true;
 
-                    if (isNm && decimal.TryParse(v.Price, NumberStyles.Any, CultureInfo.InvariantCulture, out var raw))
+                    if (isNm && decimal.TryParse(v.Price, NumberStyles.Any, CultureInfo.InvariantCulture, out var dollars))
                     {
-                        // Prices in CAD cents per spec: 510 = $5.10
-                        var dollars = raw / 100m;
+                        // Shopify prices are already in CAD dollars (e.g. "3.70" = $3.70)
                         if (isFoil)
                             foilNm ??= dollars;
                         else
