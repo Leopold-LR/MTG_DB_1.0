@@ -1,4 +1,4 @@
-﻿@page "/simplesearch"
+@page "/simplesearch"
 @using MtgInventoryApp.Models
 @inject MtgInventoryApp.Services.ScryfallService Scryfall
 @inject IJSRuntime JS
@@ -28,9 +28,108 @@
                     }
                 </button>
             </div>
+            <button class="filter-toggle-btn @(showFilters ? "active" : "")" @onclick="ToggleFilters">
+                Filters @(HasActiveFilters ? "●" : "")
+            </button>
             <button class="home-btn" @onclick='() => Navigation.NavigateTo("/")'>Home</button>
         </div>
     </header>
+
+    <!-- Filter Panel -->
+    @if (showFilters)
+    {
+        <div class="filter-panel">
+            <div class="filter-panel-inner">
+
+                <!-- Colors -->
+                <div class="filter-group">
+                    <label class="filter-label">Colors</label>
+                    <div class="color-chips">
+                        @foreach (var c in colorOptions)
+                        {
+                            <button class="color-chip color-@c.Key @(selectedColors.Contains(c.Key) ? "selected" : "")"
+                                    @onclick="() => ToggleColor(c.Key)"
+                                    title="@c.Value">
+                                @c.Key
+                            </button>
+                        }
+                    </div>
+                </div>
+
+                <!-- Type -->
+                <div class="filter-group">
+                    <label class="filter-label">Type</label>
+                    <select class="filter-select" @bind="selectedType">
+                        <option value="">Any</option>
+                        @foreach (var t in typeOptions)
+                        {
+                            <option value="@t">@t</option>
+                        }
+                    </select>
+                </div>
+
+                <!-- Set -->
+                <div class="filter-group">
+                    <label class="filter-label">Set</label>
+                    @if (isLoadingSets)
+                    {
+                        <span class="filter-loading">Loading sets…</span>
+                    }
+                    else
+                    {
+                        <select class="filter-select filter-select-wide" @bind="selectedSet">
+                            <option value="">Any</option>
+                            @foreach (var s in availableSets)
+                            {
+                                <option value="@s.Code">@s.Name</option>
+                            }
+                        </select>
+                    }
+                </div>
+
+                <!-- Rarity -->
+                <div class="filter-group">
+                    <label class="filter-label">Rarity</label>
+                    <div class="rarity-options">
+                        @foreach (var r in rarityOptions)
+                        {
+                            <label class="rarity-radio">
+                                <input type="radio" name="rarity" value="@r.Key"
+                                       checked="@(selectedRarity == r.Key)"
+                                       @onchange="() => selectedRarity = r.Key" />
+                                <span class="rarity-label rarity-dot-@r.Key">@r.Value</span>
+                            </label>
+                        }
+                    </div>
+                </div>
+
+                <!-- CMC -->
+                <div class="filter-group">
+                    <label class="filter-label">CMC</label>
+                    <div class="cmc-range">
+                        <input type="number" class="cmc-input" min="0" max="20"
+                               placeholder="Min"
+                               @bind="cmcMin" @bind:event="oninput" />
+                        <span class="cmc-dash">–</span>
+                        <input type="number" class="cmc-input" min="0" max="20"
+                               placeholder="Max"
+                               @bind="cmcMax" @bind:event="oninput" />
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="filter-actions">
+                    <button class="filter-apply-btn" @onclick="DoSearch" disabled="@isLoading">
+                        Apply
+                    </button>
+                    <button class="filter-clear-btn" @onclick="ClearFilters">
+                        Clear
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    }
 
     <!-- Main Content -->
     <main class="search-main">
@@ -109,7 +208,7 @@
             <div class="empty-state">
                 <div class="empty-icon">🔍</div>
                 <h3>No cards found</h3>
-                <p>Try different search terms</p>
+                <p>Try different search terms or adjust your filters</p>
                 <button class="action-btn" @onclick="ResetSearch">Try Again</button>
             </div>
         }
@@ -118,7 +217,7 @@
             <div class="welcome-state">
                 <div class="welcome-icon">✨</div>
                 <h3>Search for Magic cards</h3>
-                <p>Enter a card name above to start searching</p>
+                <p>Enter a card name above or use the Filters button to browse</p>
             </div>
         }
     </main>
@@ -129,10 +228,6 @@
     [SupplyParameterFromQuery]
     public string? Query { get; set; }
 
-    [Parameter]
-    [SupplyParameterFromQuery]
-    public int Page { get; set; } = 1;
-
     private string query = "";
     private List<ScryfallCard> allCards = new();
     private bool isLoading;
@@ -140,7 +235,7 @@
     private bool hasSearched;
     private string? errorMessage;
 
-    // Pagination state
+    // Pagination
     private int currentPage = 1;
     private const int pageSize = 20;
     private bool hasMore;
@@ -154,27 +249,120 @@
     private bool CanGoPrev => currentPage > 1;
     private bool CanGoNext => currentPage < TotalPages || hasMore;
 
-    protected override async Task OnParametersSetAsync()
+    // Filter state
+    private bool showFilters;
+    private bool isLoadingSets;
+    private List<ScryfallSet> availableSets = new();
+    private HashSet<string> selectedColors = new();
+    private string selectedType = "";
+    private string selectedSet = "";
+    private string selectedRarity = "";
+    private int? cmcMin;
+    private int? cmcMax;
+
+    private bool HasActiveFilters =>
+        selectedColors.Count > 0 || !string.IsNullOrEmpty(selectedType) ||
+        !string.IsNullOrEmpty(selectedSet) || !string.IsNullOrEmpty(selectedRarity) ||
+        cmcMin.HasValue || cmcMax.HasValue;
+
+    private static readonly Dictionary<string, string> colorOptions = new()
     {
-        if (!string.IsNullOrEmpty(Query) && Query != query)
+        ["W"] = "White",
+        ["U"] = "Blue",
+        ["B"] = "Black",
+        ["R"] = "Red",
+        ["G"] = "Green",
+        ["C"] = "Colorless"
+    };
+
+    private static readonly string[] typeOptions =
+    [
+        "Creature", "Instant", "Sorcery", "Enchantment",
+        "Artifact", "Planeswalker", "Land", "Battle"
+    ];
+
+    private static readonly Dictionary<string, string> rarityOptions = new()
+    {
+        [""] = "Any",
+        ["common"] = "Common",
+        ["uncommon"] = "Uncommon",
+        ["rare"] = "Rare",
+        ["mythic"] = "Mythic"
+    };
+
+    protected override void OnParametersSet()
+    {
+        if (!string.IsNullOrEmpty(Query))
         {
             query = Query;
-            await DoSearch();
-            // Restore page after search loads data
-            if (Page > 1)
-            {
-                // Load enough data to reach the target page
-                while (currentPage < Page)
-                {
-                    await NextPage();
-                }
-            }
+            _ = DoSearch();
         }
+    }
+
+    private async Task ToggleFilters()
+    {
+        showFilters = !showFilters;
+        if (showFilters && availableSets.Count == 0)
+        {
+            isLoadingSets = true;
+            availableSets = await Scryfall.GetSetsAsync();
+            isLoadingSets = false;
+        }
+    }
+
+    private void ToggleColor(string color)
+    {
+        if (!selectedColors.Remove(color))
+            selectedColors.Add(color);
+    }
+
+    private void ClearFilters()
+    {
+        selectedColors.Clear();
+        selectedType = "";
+        selectedSet = "";
+        selectedRarity = "";
+        cmcMin = null;
+        cmcMax = null;
+    }
+
+    private string BuildFilterQuery()
+    {
+        var parts = new List<string>();
+
+        if (selectedColors.Count > 0)
+        {
+            // c:wubrgc — combined color filter
+            var colorStr = string.Join("", selectedColors).ToLower();
+            parts.Add($"c:{colorStr}");
+        }
+
+        if (!string.IsNullOrEmpty(selectedType))
+            parts.Add($"t:{selectedType.ToLower()}");
+
+        if (!string.IsNullOrEmpty(selectedSet))
+            parts.Add($"e:{selectedSet}");
+
+        if (!string.IsNullOrEmpty(selectedRarity))
+            parts.Add($"r:{selectedRarity}");
+
+        if (cmcMin.HasValue && cmcMax.HasValue && cmcMin == cmcMax)
+            parts.Add($"cmc={cmcMin}");
+        else
+        {
+            if (cmcMin.HasValue) parts.Add($"cmc>={cmcMin}");
+            if (cmcMax.HasValue) parts.Add($"cmc<={cmcMax}");
+        }
+
+        return string.Join(" ", parts);
     }
 
     private async Task DoSearch()
     {
-        if (string.IsNullOrWhiteSpace(query)) return;
+        var filterQuery = BuildFilterQuery();
+        var fullQuery = string.Join(" ", new[] { query.Trim(), filterQuery }.Where(s => !string.IsNullOrEmpty(s)));
+
+        if (string.IsNullOrWhiteSpace(fullQuery)) return;
 
         hasSearched = true;
         isLoading = true;
@@ -187,7 +375,7 @@
 
         try
         {
-            var result = await Scryfall.SearchAsync(query, scryfallPage);
+            var result = await Scryfall.SearchAsync(fullQuery, scryfallPage);
             allCards.AddRange(result.Data);
             hasMore = result.HasMore;
             totalCards = result.TotalCards;
@@ -206,7 +394,6 @@
     private async Task NextPage()
     {
         var targetPage = currentPage + 1;
-        // If we need more cards from the API
         while (targetPage * pageSize > allCards.Count && hasMore)
         {
             isLoadingMore = true;
@@ -214,7 +401,9 @@
             scryfallPage++;
             try
             {
-                var result = await Scryfall.SearchAsync(query, scryfallPage);
+                var filterQuery = BuildFilterQuery();
+                var fullQuery = string.Join(" ", new[] { query.Trim(), filterQuery }.Where(s => !string.IsNullOrEmpty(s)));
+                var result = await Scryfall.SearchAsync(fullQuery, scryfallPage);
                 allCards.AddRange(result.Data);
                 hasMore = result.HasMore;
             }
@@ -237,9 +426,9 @@
         if (CanGoPrev) currentPage--;
     }
 
-    private async Task HandleKeyPress(KeyboardEventArgs e)
+    private void HandleKeyPress(KeyboardEventArgs e)
     {
-        if (e.Key == "Enter") await DoSearch();
+        if (e.Key == "Enter") _ = DoSearch();
     }
 
     private void ResetSearch()
@@ -250,12 +439,12 @@
         currentPage = 1;
         totalCards = 0;
         hasMore = false;
+        ClearFilters();
     }
 
     private void ShowCardDetails(ScryfallCard card)
     {
-        var returnUrl = Uri.EscapeDataString(query);
-        Navigation.NavigateTo($"/card/{card.Id}?returnQuery={returnUrl}&returnPage={currentPage}");
+        Navigation.NavigateTo($"/card/{card.Id}");
     }
 
     private bool IsDoubleFacedCard(ScryfallCard card)
