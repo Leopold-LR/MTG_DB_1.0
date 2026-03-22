@@ -1,0 +1,92 @@
+@page "/settings"
+@rendermode InteractiveServer
+@using MtgInventoryApp.Services
+@inject SettingsService SettingsSvc
+@inject IJSRuntime JS
+
+<PageTitle>MTGHUB - Settings</PageTitle>
+
+<div class="settings-page">
+    <header class="settings-header">
+        <div class="header-content">
+            <h1 class="logo">MTGHUB</h1>
+            <h2 class="settings-title">Settings</h2>
+        </div>
+    </header>
+
+    <main class="settings-main">
+        <div class="settings-card">
+            <h3 class="settings-section-title">Price Preferences</h3>
+
+            <div class="settings-row">
+                <div class="settings-label-group">
+                    <span class="settings-label">Display Currency</span>
+                    <span class="settings-hint">Scryfall prices will be converted using the exchange rate below.</span>
+                </div>
+                <div class="settings-control currency-toggle">
+                    <button class="currency-btn @(SettingsSvc.PriceCurrency == "USD" ? "active" : "")"
+                            @onclick='() => SetCurrency("USD")'>USD</button>
+                    <button class="currency-btn @(SettingsSvc.PriceCurrency == "CAD" ? "active" : "")"
+                            @onclick='() => SetCurrency("CAD")'>CAD</button>
+                </div>
+            </div>
+
+            @if (SettingsSvc.IsCAD)
+            {
+                <div class="settings-row">
+                    <div class="settings-label-group">
+                        <span class="settings-label">USD → CAD Rate</span>
+                        <span class="settings-hint">Applied to Scryfall USD prices. La Crypte prices are already in CAD.</span>
+                    </div>
+                    <div class="settings-control">
+                        <input class="rate-input"
+                               type="number"
+                               step="0.01"
+                               min="0.01"
+                               @bind="SettingsSvc.UsdToCadRate"
+                               @bind:event="oninput" />
+                        <span class="rate-label">× USD = 1 CAD</span>
+                    </div>
+                </div>
+            }
+
+            @if (saved)
+            {
+                <div class="settings-saved-badge">✓ Saved</div>
+            }
+
+            <div class="settings-actions">
+                <button class="save-btn" @onclick="Save">Save Settings</button>
+            </div>
+        </div>
+    </main>
+</div>
+
+@code {
+    private bool saved;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await SettingsSvc.LoadAsync(JS);
+            StateHasChanged();
+        }
+    }
+
+    private void SetCurrency(string currency)
+    {
+        SettingsSvc.PriceCurrency = currency;
+        saved = false;
+    }
+
+    private async Task Save()
+    {
+        await SettingsSvc.SaveAsync(JS);
+        saved = true;
+        StateHasChanged();
+        await Task.Delay(2000);
+        saved = false;
+        StateHasChanged();
+    }
+}

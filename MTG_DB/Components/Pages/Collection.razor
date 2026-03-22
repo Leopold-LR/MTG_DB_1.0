@@ -27,65 +27,218 @@
                         @allCollections.Sum(g => g.Cards.Sum(c => c.Quantity)) cards total
                     </p>
                 </div>
+                <div class="col-header-actions">
+                    <button class="new-collection-btn" @onclick="OpenCreateModal">
+                        <svg viewBox="0 0 20 20" fill="currentColor" width="16" height="16">
+                            <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/>
+                        </svg>
+                        <span>New Collection</span>
+                    </button>
+                </div>
             </div>
         </header>
 
+        <!-- Collections Search & Filter Bar -->
+        <div class="collections-filter-bar">
+            <div class="collections-filter-inner">
+                <div class="col-list-search-box">
+                    <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                    </svg>
+                    <input class="col-list-search-input"
+                           @bind="collectionSearch"
+                           @bind:event="oninput"
+                           placeholder="Search collections…" />
+                    @if (!string.IsNullOrEmpty(collectionSearch))
+                    {
+                        <button class="clear-filter-btn" @onclick='() => collectionSearch = ""'>
+                            <svg viewBox="0 0 20 20" fill="currentColor" width="14" height="14">
+                                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                            </svg>
+                        </button>
+                    }
+                </div>
+                <span class="col-list-count">
+                    @FilteredCollections.Count() node@(FilteredCollections.Count() == 1 ? "" : "s")
+                </span>
+            </div>
+        </div>
+
         <main class="collections-list-main">
-            <div class="collections-grid">
-                @foreach (var group in allCollections)
-                {
-                    var groupCards   = group.Cards;
-                    var totalQty     = groupCards.Sum(c => c.Quantity);
-                    var uniqueCount  = groupCards.Count;
-                    var hasValue     = groupCards.Any(c => c.PriceUsd.HasValue);
-                    var totalValue   = groupCards.Sum(c => (c.PriceUsd ?? 0m) * c.Quantity);
-                    var foilCount    = groupCards.Count(c => c.IsFoil);
+            @if (!FilteredCollections.Any())
+            {
+                <div class="col-no-results">
+                    <div class="col-no-results-icon">🔍</div>
+                    <p>No collections match <strong>"@collectionSearch"</strong></p>
+                    <button class="clear-search-btn" @onclick='() => collectionSearch = ""'>Clear search</button>
+                </div>
+            }
+            else
+            {
+                <div class="collections-grid">
+                    @foreach (var group in FilteredCollections)
+                    {
+                        var groupCards   = group.Cards;
+                        var totalQty     = groupCards.Sum(c => c.Quantity);
+                        var uniqueCount  = groupCards.Count;
+                        var hasValue     = groupCards.Any(c => c.PriceUsd.HasValue);
+                        var totalValue   = groupCards.Sum(c => (c.PriceUsd ?? 0m) * c.Quantity);
+                        var foilCount    = groupCards.Count(c => c.IsFoil);
+                        var maxQty       = allCollections.Max(g2 => g2.Cards.Sum(c => c.Quantity));
+                        var fillPct      = maxQty > 0 ? (int)Math.Round((double)totalQty / maxQty * 100) : 0;
 
-                    <button class="collection-tile" @onclick="() => OpenCollection(group.Key)">
+                        <div class="collection-tile @(pendingDeleteKey == group.Key ? "tile-confirm-delete" : "")">
 
-                        <!-- Icon slab -->
-                        <div class="tile-icon-wrap">
-                            <span class="tile-icon">@group.Icon</span>
-                        </div>
-
-                        <!-- Body -->
-                        <div class="tile-body">
-                            <h2 class="tile-name">@group.Name</h2>
-                            <div class="tile-stats-row">
-                                <span class="tile-stat">
-                                    <span class="tile-stat-val">@totalQty</span>
-                                    <span class="tile-stat-lbl">card@(totalQty == 1 ? "" : "s")</span>
-                                </span>
-                                <span class="tile-sep">·</span>
-                                <span class="tile-stat">
-                                    <span class="tile-stat-val">@uniqueCount</span>
-                                    <span class="tile-stat-lbl">unique</span>
-                                </span>
-                                @if (foilCount > 0)
-                                {
-                                    <span class="tile-sep">·</span>
-                                    <span class="tile-stat tile-stat-foil">
-                                        <span class="tile-stat-val">@foilCount</span>
-                                        <span class="tile-stat-lbl">foil</span>
-                                    </span>
-                                }
-                            </div>
-                            @if (hasValue)
+                            <!-- Delete controls -->
+                            @if (pendingDeleteKey == group.Key)
                             {
-                                <div class="tile-value">$@totalValue.ToString("N2")</div>
+                                <div class="tile-delete-confirm">
+                                    <p class="tile-delete-msg">Delete <strong>@group.Name</strong>?</p>
+                                    <div class="tile-delete-actions">
+                                        <button class="tile-delete-yes" @onclick="() => ConfirmDelete(group.Key)">Delete</button>
+                                        <button class="tile-delete-no" @onclick="CancelDelete">Cancel</button>
+                                    </div>
+                                </div>
+                            }
+                            else
+                            {
+                                <!-- Node pulse indicator -->
+                                <div class="tile-node-dot"></div>
+
+                                <!-- Delete button (top-right) -->
+                                <button class="tile-delete-btn" @onclick="() => RequestDelete(group.Key)" title="Delete collection">
+                                    <svg viewBox="0 0 20 20" fill="currentColor" width="14" height="14">
+                                        <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd"/>
+                                    </svg>
+                                </button>
+
+                                <!-- Main clickable area -->
+                                <button class="tile-click-area" @onclick="() => OpenCollection(group.Key)">
+
+                                    <!-- Icon slab -->
+                                    <div class="tile-icon-wrap">
+                                        <span class="tile-icon">@group.Icon</span>
+                                    </div>
+
+                                    <!-- Body -->
+                                    <div class="tile-body">
+                                        <h2 class="tile-name">@group.Name</h2>
+                                        <div class="tile-stats-row">
+                                            <span class="tile-stat">
+                                                <span class="tile-stat-val">@totalQty</span>
+                                                <span class="tile-stat-lbl">card@(totalQty == 1 ? "" : "s")</span>
+                                            </span>
+                                            <span class="tile-sep">·</span>
+                                            <span class="tile-stat">
+                                                <span class="tile-stat-val">@uniqueCount</span>
+                                                <span class="tile-stat-lbl">unique</span>
+                                            </span>
+                                            @if (foilCount > 0)
+                                            {
+                                                <span class="tile-sep">·</span>
+                                                <span class="tile-stat tile-stat-foil">
+                                                    <span class="tile-stat-val">@foilCount</span>
+                                                    <span class="tile-stat-lbl">foil</span>
+                                                </span>
+                                            }
+                                        </div>
+
+                                        <!-- Graph-style fill bar -->
+                                        <div class="tile-graph-bar">
+                                            <div class="tile-graph-fill" style="width: @fillPct%"></div>
+                                        </div>
+
+                                        @if (hasValue)
+                                        {
+                                            <div class="tile-value">$@totalValue.ToString("N2")</div>
+                                        }
+                                    </div>
+
+                                    <!-- Arrow -->
+                                    <div class="tile-arrow">
+                                        <svg viewBox="0 0 20 20" fill="currentColor" width="16" height="16">
+                                            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+                                        </svg>
+                                    </div>
+
+                                </button>
                             }
                         </div>
+                    }
 
-                        <!-- Arrow -->
-                        <div class="tile-arrow">
-                            <svg viewBox="0 0 20 20" fill="currentColor" width="18" height="18">
-                                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+                    <!-- Add new collection tile (ghost) -->
+                    <button class="collection-tile-add" @onclick="OpenCreateModal">
+                        <div class="tile-add-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="28" height="28">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
                             </svg>
                         </div>
+                        <span class="tile-add-label">New Collection</span>
                     </button>
-                }
-            </div>
+                </div>
+            }
         </main>
+
+        <!-- ══════════════════════════════════════════
+             CREATE COLLECTION MODAL
+             ══════════════════════════════════════════ -->
+        @if (showCreateModal)
+        {
+            <div class="modal-backdrop" @onclick="CloseCreateModal">
+                <div class="create-modal" @onclick:stopPropagation="true">
+                    <div class="modal-header">
+                        <h2 class="modal-title">New Collection</h2>
+                        <button class="modal-close-btn" @onclick="CloseCreateModal">
+                            <svg viewBox="0 0 20 20" fill="currentColor" width="18" height="18">
+                                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <div class="modal-body">
+                        <!-- Name -->
+                        <div class="modal-field">
+                            <label class="modal-label">Collection Name</label>
+                            <input class="modal-input"
+                                   @bind="newCollectionName"
+                                   @bind:event="oninput"
+                                   placeholder="e.g. Binder 3, Cube, Trade Pile…"
+                                   maxlength="40"
+                                   @onkeydown="OnModalKeyDown" />
+                        </div>
+
+                        <!-- Icon picker -->
+                        <div class="modal-field">
+                            <label class="modal-label">Icon</label>
+                            <div class="icon-picker-grid">
+                                @foreach (var icon in availableIcons)
+                                {
+                                    <button class="icon-option @(newCollectionIcon == icon ? "icon-option-selected" : "")"
+                                            @onclick="() => newCollectionIcon = icon">
+                                        @icon
+                                    </button>
+                                }
+                            </div>
+                        </div>
+
+                        @if (!string.IsNullOrEmpty(createError))
+                        {
+                            <p class="modal-error">@createError</p>
+                        }
+                    </div>
+
+                    <div class="modal-footer">
+                        <button class="modal-cancel-btn" @onclick="CloseCreateModal">Cancel</button>
+                        <button class="modal-create-btn" @onclick="CreateCollection" disabled="@string.IsNullOrWhiteSpace(newCollectionName)">
+                            <svg viewBox="0 0 20 20" fill="currentColor" width="15" height="15">
+                                <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/>
+                            </svg>
+                            Create
+                        </button>
+                    </div>
+                </div>
+            </div>
+        }
     }
     else
     {
@@ -292,11 +445,28 @@
     }
 
     // ── State ─────────────────────────────────────────────────────────────────
-    private string filterQuery = "";
+    private string filterQuery       = "";
+    private string collectionSearch  = "";
 
     // null  = showing collections list
     // value = showing that collection's cards
     private string? selectedCollectionKey = null;
+
+    // Create modal
+    private bool   showCreateModal    = false;
+    private string newCollectionName  = "";
+    private string newCollectionIcon  = "📦";
+    private string createError        = "";
+
+    // Delete confirmation
+    private string? pendingDeleteKey = null;
+
+    // Available icons for picker
+    private static readonly string[] availableIcons = new[]
+    {
+        "📦", "📗", "📘", "📙", "📕", "🎴", "🃏", "⚔️", "🛡️",
+        "🏆", "💎", "🌟", "✨", "🔮", "🧙", "🐉", "🌙", "⬡"
+    };
 
     // ── All collections ────────────────────────────────────────────────────────
     private List<CollectionGroup> allCollections = new()
@@ -352,6 +522,13 @@
         },
     };
 
+    // ── Filtered collections list ──────────────────────────────────────────────
+    private IEnumerable<CollectionGroup> FilteredCollections =>
+        string.IsNullOrWhiteSpace(collectionSearch)
+            ? allCollections
+            : allCollections.Where(g =>
+                g.Name.Contains(collectionSearch, StringComparison.OrdinalIgnoreCase));
+
     // ── Active group ───────────────────────────────────────────────────────────
     private CollectionGroup ActiveGroup =>
         allCollections.FirstOrDefault(g => g.Key == selectedCollectionKey) ?? allCollections[0];
@@ -376,12 +553,73 @@
     {
         selectedCollectionKey = key;
         filterQuery = "";
+        pendingDeleteKey = null;
     }
 
     private void CloseCollection()
     {
         selectedCollectionKey = null;
         filterQuery = "";
+    }
+
+    // ── Create collection modal ───────────────────────────────────────────────
+    private void OpenCreateModal()
+    {
+        newCollectionName  = "";
+        newCollectionIcon  = "📦";
+        createError        = "";
+        showCreateModal    = true;
+    }
+
+    private void CloseCreateModal()
+    {
+        showCreateModal = false;
+        createError     = "";
+    }
+
+    private void CreateCollection()
+    {
+        var name = newCollectionName.Trim();
+        if (string.IsNullOrEmpty(name)) return;
+
+        if (allCollections.Any(g => g.Name.Equals(name, StringComparison.OrdinalIgnoreCase)))
+        {
+            createError = "A collection with that name already exists.";
+            return;
+        }
+
+        var key = Guid.NewGuid().ToString("N")[..8];
+        allCollections.Add(new CollectionGroup
+        {
+            Key   = key,
+            Name  = name,
+            Icon  = newCollectionIcon,
+            Cards = new()
+        });
+
+        ToastService.Show($"Created \"{name}\"");
+        showCreateModal = false;
+        createError     = "";
+    }
+
+    private void OnModalKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter") CreateCollection();
+        if (e.Key == "Escape") CloseCreateModal();
+    }
+
+    // ── Delete collection ──────────────────────────────────────────────────────
+    private void RequestDelete(string key)  => pendingDeleteKey = key;
+    private void CancelDelete()             => pendingDeleteKey = null;
+
+    private void ConfirmDelete(string key)
+    {
+        var group = allCollections.FirstOrDefault(g => g.Key == key);
+        if (group is null) return;
+
+        allCollections.Remove(group);
+        pendingDeleteKey = null;
+        ToastService.Show($"Deleted \"{group.Name}\"");
     }
 
     // ── Quantity stepper ──────────────────────────────────────────────────────
