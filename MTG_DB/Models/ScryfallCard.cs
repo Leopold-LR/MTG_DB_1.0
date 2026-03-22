@@ -6,6 +6,9 @@ public class ScryfallCard
     [JsonPropertyName("id")]
     public string Id { get; set; } = "";
 
+    [JsonPropertyName("oracle_id")]
+    public string? OracleId { get; set; }
+
     [JsonPropertyName("name")]
     public string Name { get; set; } = "";
 

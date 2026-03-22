@@ -1,4 +1,5 @@
 @page "/card/{id}"
+@rendermode InteractiveServer
 @using MTG_DB.Models
 @using MtgInventoryApp.Models
 @using MtgInventoryApp.Services
@@ -25,13 +26,11 @@
         @if (isLoading)
         {
             <div class="card-details-container">
-                <!-- Skeleton: image column -->
                 <div class="card-image-section">
                     <div class="image-container">
                         <div class="skeleton-image-large"></div>
                     </div>
                 </div>
-                <!-- Skeleton: info column -->
                 <div class="card-info-section">
                     <div class="card-header">
                         <div class="skeleton-line skeleton-title"></div>
@@ -67,7 +66,7 @@
         else if (card != null)
         {
             <div class="card-details-container">
-                <!-- Left Column - Card Image -->
+                <!-- Left Column — Card Image (sticky) -->
                 <div class="card-image-section">
                     <div class="image-container">
                         @{
@@ -96,11 +95,11 @@
                                         @onclick="ToggleCardFace">
                                     @if (showBackFace)
                                     {
-                                        <span>Show Front</span>
+                                        <span>↩ Show Front</span>
                                     }
                                     else
                                     {
-                                        <span>Show Back</span>
+                                        <span>↪ Show Back</span>
                                     }
                                 </button>
                             </div>
@@ -108,134 +107,258 @@
                     </div>
                 </div>
 
-                <!-- Right Column - Card Details -->
+                <!-- Right Column — Tabbed Info Panel -->
                 <div class="card-info-section">
+                    <!-- Card Header (always visible) -->
                     <div class="card-header">
                         <h1 class="card-title">@card.Name</h1>
-                        <div class="card-set-badge">
-                            <span class="set-name">@card.SetName</span>
-                            <span class="set-code">@card.Set.ToUpper()</span>
+                        <div class="card-meta-row">
+                            <div class="card-set-badge">
+                                <img src="https://svgs.scryfall.io/sets/@(card.Set.ToLower()).svg"
+                                     class="set-symbol"
+                                     alt="@card.SetName"
+                                     onerror="this.style.display='none'" />
+                                <span class="set-name">@card.SetName</span>
+                                <span class="set-code">@card.Set.ToUpper()</span>
+                            </div>
+                            <span class="rarity-badge rarity-@card.Rarity?.ToLower()">
+                                @GetRarityDisplay(card.Rarity)
+                            </span>
                         </div>
                     </div>
 
-                    <!-- Basic Info -->
-                    <div class="info-group">
-                        <h3>Card Details</h3>
-                        <div class="info-grid">
-                            <div class="info-item">
-                                <span class="label">Mana Cost</span>
-                                <span class="value">@(card.ManaCost ?? "—")</span>
-                            </div>
-                            <div class="info-item">
-                                <span class="label">Type</span>
-                                <span class="value">@(card.TypeLine ?? "—")</span>
-                            </div>
-                            <div class="info-item">
-                                <span class="label">Rarity</span>
-                                <span class="value rarity @card.Rarity?.ToLower()">@GetRarityDisplay(card.Rarity)</span>
-                            </div>
-                            <div class="info-item">
-                                <span class="label">Collector Number</span>
-                                <span class="value">@(card.CollectorNumber ?? "—")</span>
-                            </div>
-                        </div>
-                    </div>
+                    <!-- Bootstrap Tabs -->
+                    <ul class="details-tabs">
+                        <li><button class="tab-btn @(activeTab == "overview" ? "active" : "")" @onclick='() => SetTab("overview")'>Overview</button></li>
+                        <li><button class="tab-btn @(activeTab == "prices" ? "active" : "")" @onclick='() => SetTab("prices")'>Prices</button></li>
+                        <li><button class="tab-btn @(activeTab == "rulings" ? "active" : "")" @onclick='() => SetTab("rulings")'>Rulings</button></li>
+                        <li><button class="tab-btn @(activeTab == "prints" ? "active" : "")" @onclick='() => SetTab("prints")'>Prints</button></li>
+                    </ul>
 
-                    <!-- Rules Text -->
-                    <div class="info-group">
-                        <h3>Rules Text</h3>
-                        <div class="rules-text">
-                            @if (!string.IsNullOrEmpty(card.OracleText))
+                    <!-- Tab Panels -->
+                    <div class="tab-content">
+
+                        @* ── Overview ── *@
+                        @if (activeTab == "overview")
+                        {
+                            <div class="info-group">
+                                <h3>Card Details</h3>
+                                <div class="info-grid">
+                                    <div class="info-item">
+                                        <span class="label">Mana Cost</span>
+                                        <span class="value">@(card.ManaCost ?? "—")</span>
+                                    </div>
+                                    <div class="info-item">
+                                        <span class="label">Type</span>
+                                        <span class="value">@(card.TypeLine ?? "—")</span>
+                                    </div>
+                                    <div class="info-item">
+                                        <span class="label">CMC</span>
+                                        <span class="value">@(card.Cmc > 0 ? card.Cmc.ToString("G") : "—")</span>
+                                    </div>
+                                    <div class="info-item">
+                                        <span class="label">Collector #</span>
+                                        <span class="value">@(card.CollectorNumber ?? "—")</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="info-group">
+                                <h3>Rules Text</h3>
+                                <div class="rules-text">
+                                    @if (!string.IsNullOrEmpty(card.OracleText))
+                                    {
+                                        @card.OracleText
+                                    }
+                                    else if (IsDoubleFacedCard(card))
+                                    {
+                                        @foreach (var face in card.CardFaces)
+                                        {
+                                            <div class="dfc-face-rules">
+                                                <strong>@face.Name</strong>
+                                                <p>@(face.OracleText ?? "—")</p>
+                                            </div>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <p class="text-muted">No rules text.</p>
+                                    }
+                                </div>
+                            </div>
+
+                            <div class="info-group">
+                                <h3>Stats</h3>
+                                <div class="stats-grid">
+                                    <div class="stat-item">
+                                        <span class="stat-label">Power</span>
+                                        <span class="stat-value">@(card.Power ?? "—")</span>
+                                    </div>
+                                    <div class="stat-item">
+                                        <span class="stat-label">Toughness</span>
+                                        <span class="stat-value">@(card.Toughness ?? "—")</span>
+                                    </div>
+                                    <div class="stat-item">
+                                        <span class="stat-label">Loyalty</span>
+                                        <span class="stat-value">@(card.Loyalty ?? "—")</span>
+                                    </div>
+                                    <div class="stat-item">
+                                        <span class="stat-label">CMC</span>
+                                        <span class="stat-value">@(card.Cmc > 0 ? card.Cmc.ToString("G") : "—")</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="info-group">
+                                <h3>Additional Information</h3>
+                                <div class="additional-info">
+                                    <div class="info-row">
+                                        <span class="info-label">Artist</span>
+                                        <span class="info-value">@(card.Artist ?? "—")</span>
+                                    </div>
+                                    <div class="info-row">
+                                        <span class="info-label">Border</span>
+                                        <span class="info-value">@(card.BorderColor ?? "—")</span>
+                                    </div>
+                                    <div class="info-row">
+                                        <span class="info-label">Frame</span>
+                                        <span class="info-value">@(card.Frame ?? "—")</span>
+                                    </div>
+                                    <div class="info-row">
+                                        <span class="info-label">Language</span>
+                                        <span class="info-value">@(card.Lang ?? "—")</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="actions-section">
+                                <button class="action-btn primary" @onclick="AddToCollection">+ Add to Collection</button>
+                                <button class="action-btn secondary" @onclick="AddToDeck">+ Add to Deck</button>
+                                <button class="action-btn tertiary" @onclick="ShareCard">📤 Share</button>
+                            </div>
+                        }
+
+                        @* ── Prices ── *@
+                        else if (activeTab == "prices")
+                        {
+                            <div class="info-group">
+                                <h3>Market Prices</h3>
+                                <table class="prices-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Format</th>
+                                            <th>Regular</th>
+                                            <th>Foil</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>USD</td>
+                                            <td>@FormatPrice(card.Prices?.Usd, "$")</td>
+                                            <td>@FormatPrice(card.Prices?.UsdFoil, "$")</td>
+                                        </tr>
+                                        <tr>
+                                            <td>USD Etched</td>
+                                            <td>@FormatPrice(card.Prices?.UsdEtched, "$")</td>
+                                            <td>—</td>
+                                        </tr>
+                                        <tr>
+                                            <td>EUR</td>
+                                            <td>@FormatPrice(card.Prices?.Eur, "€")</td>
+                                            <td>@FormatPrice(card.Prices?.EurFoil, "€")</td>
+                                        </tr>
+                                        <tr>
+                                            <td>MTGO (Tix)</td>
+                                            <td>@FormatPrice(card.Prices?.Tix, "")</td>
+                                            <td>—</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                <p class="price-note">Prices sourced from <a href="https://scryfall.com" target="_blank" rel="noopener">Scryfall</a>. Updated daily.</p>
+                            </div>
+                        }
+
+                        @* ── Rulings ── *@
+                        else if (activeTab == "rulings")
+                        {
+                            @if (isLoadingRulings)
                             {
-                                @card.OracleText
+                                <div class="tab-loading">
+                                    <div class="tab-spinner"></div>
+                                    <span>Loading rulings…</span>
+                                </div>
+                            }
+                            else if (rulings != null && rulings.Count > 0)
+                            {
+                                <div class="rulings-list">
+                                    @foreach (var ruling in rulings)
+                                    {
+                                        <div class="ruling-item">
+                                            <div class="ruling-meta">
+                                                <span class="ruling-source">@GetSourceLabel(ruling.Source)</span>
+                                                <span class="ruling-date">@ruling.PublishedAt</span>
+                                            </div>
+                                            <p class="ruling-comment">@ruling.Comment</p>
+                                        </div>
+                                    }
+                                </div>
                             }
                             else
                             {
-                                <p class="text-muted">No rules text.</p>
+                                <div class="empty-state">
+                                    <span>📜</span>
+                                    <p>No rulings found for this card.</p>
+                                </div>
                             }
-                        </div>
-                    </div>
+                        }
 
-                    <!-- Stats -->
-                    <div class="info-group">
-                        <h3>Stats</h3>
-                        <div class="stats-grid">
-                            <div class="stat-item">
-                                <span class="stat-label">Power</span>
-                                <span class="stat-value">@(GetPower(card) ?? "—")</span>
-                            </div>
-                            <div class="stat-item">
-                                <span class="stat-label">Toughness</span>
-                                <span class="stat-value">@(GetToughness(card) ?? "—")</span>
-                            </div>
-                            <div class="stat-item">
-                                <span class="stat-label">Loyalty</span>
-                                <span class="stat-value">@(GetLoyalty(card) ?? "—")</span>
-                            </div>
-                            <div class="stat-item">
-                                <span class="stat-label">CMC</span>
-                                <span class="stat-value">@(GetCmc(card) ?? "—")</span>
-                            </div>
-                        </div>
-                    </div>
+                        @* ── Prints ── *@
+                        else if (activeTab == "prints")
+                        {
+                            @if (isLoadingPrints)
+                            {
+                                <div class="tab-loading">
+                                    <div class="tab-spinner"></div>
+                                    <span>Loading printings…</span>
+                                </div>
+                            }
+                            else if (prints != null && prints.Count > 0)
+                            {
+                                <div class="prints-grid">
+                                    @foreach (var print in prints)
+                                    {
+                                        var printImg = print.ImageUris?.Normal ?? print.CardFaces?.FirstOrDefault()?.ImageUris?.Normal;
+                                        var printId = print.Id;
+                                        <div class="print-card" @onclick="() => NavigateToCard(printId)">
+                                            @if (!string.IsNullOrEmpty(printImg))
+                                            {
+                                                <img src="@printImg" alt="@print.SetName" class="print-thumb" />
+                                            }
+                                            else
+                                            {
+                                                <div class="print-thumb-placeholder">🃏</div>
+                                            }
+                                            <div class="print-info">
+                                                <div class="print-set">@print.SetName</div>
+                                                <div class="print-num">#@print.CollectorNumber · @GetRarityDisplay(print.Rarity)</div>
+                                                @if (!string.IsNullOrEmpty(print.Prices?.Usd))
+                                                {
+                                                    <div class="print-price">$@print.Prices.Usd</div>
+                                                }
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="empty-state">
+                                    <span>🃏</span>
+                                    <p>No other printings found.</p>
+                                </div>
+                            }
+                        }
 
-                    <!-- Pricing -->
-                    <div class="info-group">
-                        <h3>Pricing</h3>
-                        <div class="pricing-grid">
-                            <div class="price-item">
-                                <span class="price-label">Regular</span>
-                                <span class="price-value">@FormatUsd(card.Prices?.Usd)</span>
-                            </div>
-                            <div class="price-item">
-                                <span class="price-label">Foil</span>
-                                <span class="price-value">@FormatUsd(card.Prices?.UsdFoil)</span>
-                            </div>
-                            <div class="price-item">
-                                <span class="price-label">Etched</span>
-                                <span class="price-value">@FormatUsd(card.Prices?.UsdEtched)</span>
-                            </div>
-                            <div class="price-item">
-                                <span class="price-label">MTGO</span>
-                                <span class="price-value">@FormatUsd(card.Prices?.Tix)</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Additional Info -->
-                    <div class="info-group">
-                        <h3>Additional Information</h3>
-                        <div class="additional-info">
-                            <div class="info-row">
-                                <span class="info-label">Artist</span>
-                                <span class="info-value">@(GetArtist(card) ?? "—")</span>
-                            </div>
-                            <div class="info-row">
-                                <span class="info-label">Border</span>
-                                <span class="info-value">@(GetBorderColor(card) ?? "—")</span>
-                            </div>
-                            <div class="info-row">
-                                <span class="info-label">Frame</span>
-                                <span class="info-value">@(GetFrame(card) ?? "—")</span>
-                            </div>
-                            <div class="info-row">
-                                <span class="info-label">Language</span>
-                                <span class="info-value">@(GetLanguage(card) ?? "—")</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Actions -->
-                    <div class="actions-section">
-                        <button class="action-btn primary" @onclick="AddToCollection">
-                            + Add to Collection
-                        </button>
-                        <button class="action-btn secondary" @onclick="AddToDeck">
-                            + Add to Deck
-                        </button>
-                        <button class="action-btn tertiary" @onclick="ShareCard">
-                            📤 Share
-                        </button>
                     </div>
                 </div>
             </div>
@@ -260,17 +383,20 @@
     private bool hasError;
     private string? errorMessage;
     private bool showBackFace = false;
+    private string activeTab = "overview";
+
+    private List<ScryfallRuling>? rulings;
+    private bool isLoadingRulings;
+
+    private List<ScryfallCard>? prints;
+    private bool isLoadingPrints;
 
     protected override async Task OnInitializedAsync()
     {
         if (!string.IsNullOrEmpty(Id))
-        {
             await LoadCardData();
-        }
         else
-        {
             isLoading = false;
-        }
     }
 
     private async Task LoadCardData()
@@ -310,6 +436,36 @@
         }
     }
 
+    private void SetTab(string tab)
+    {
+        if (activeTab == tab) return;
+        activeTab = tab;
+
+        if (tab == "rulings" && rulings == null)
+            _ = LoadRulings();
+        else if (tab == "prints" && prints == null)
+            _ = LoadPrints();
+    }
+
+    private async Task LoadRulings()
+    {
+        isLoadingRulings = true;
+        StateHasChanged();
+        rulings = await Scryfall.GetRulingsAsync(Id);
+        isLoadingRulings = false;
+        StateHasChanged();
+    }
+
+    private async Task LoadPrints()
+    {
+        if (card == null) return;
+        isLoadingPrints = true;
+        StateHasChanged();
+        prints = await Scryfall.GetPrintsAsync(card.Name, card.Id);
+        isLoadingPrints = false;
+        StateHasChanged();
+    }
+
     private void GoBack()
     {
         if (!string.IsNullOrEmpty(ReturnQuery))
@@ -323,67 +479,44 @@
         }
     }
 
-    private void ToggleCardFace()
+    private void ToggleCardFace() => showBackFace = !showBackFace;
+
+    private string GetCardImage(ScryfallCard c)
     {
-        showBackFace = !showBackFace;
+        static string Best(ScryfallImageUris? uris) =>
+            !string.IsNullOrEmpty(uris?.Large) ? uris.Large : uris?.Normal ?? string.Empty;
+
+        if (IsDoubleFacedCard(c) && c.CardFaces.Count > 0)
+            return Best(showBackFace && c.CardFaces.Count > 1 ? c.CardFaces[1].ImageUris : c.CardFaces[0].ImageUris);
+
+        return Best(c.ImageUris);
     }
 
-    private string GetCardImage(ScryfallCard card)
-    {
-        string GetImageUrl(ScryfallImageUris uris)
-        {
-            return !string.IsNullOrEmpty(uris?.Large) ? uris.Large : uris?.Normal ?? string.Empty;
-        }
+    private bool IsDoubleFacedCard(ScryfallCard c) =>
+        c.Layout == "transform" || c.Layout == "modal_dfc" || c.CardFaces?.Count > 1;
 
-        if (IsDoubleFacedCard(card) && showBackFace && card.CardFaces.Count > 1)
-        {
-            return GetImageUrl(card.CardFaces[1].ImageUris);
-        }
-        else if (IsDoubleFacedCard(card) && card.CardFaces.Count > 0)
-        {
-            return GetImageUrl(card.CardFaces[0].ImageUris);
-        }
-        return GetImageUrl(card.ImageUris);
-    }
-
-    private bool IsDoubleFacedCard(ScryfallCard card)
-    {
-        return card.Layout == "transform" || card.Layout == "modal_dfc" || card.CardFaces?.Count > 1;
-    }
-
-    private string? GetPower(ScryfallCard card) => card.Power;
-    private string? GetToughness(ScryfallCard card) => card.Toughness;
-    private string? GetLoyalty(ScryfallCard card) => card.Loyalty;
-    private string? GetCmc(ScryfallCard card) => card.Cmc > 0 ? card.Cmc.ToString("G") : null;
-    private string? GetArtist(ScryfallCard card) => card.Artist;
-    private string? GetBorderColor(ScryfallCard card) => card.BorderColor;
-    private string? GetFrame(ScryfallCard card) => card.Frame;
-    private string? GetLanguage(ScryfallCard card) => card.Lang;
-
-    private static string FormatUsd(string? usd) =>
-        string.IsNullOrWhiteSpace(usd) ? "—" : $"${usd}";
+    private static string FormatPrice(string? val, string symbol) =>
+        string.IsNullOrWhiteSpace(val) ? "—" : $"{symbol}{val}";
 
     private string GetRarityDisplay(string? rarity) => rarity?.ToLower() switch
     {
-        "common" => "Common",
+        "common"   => "Common",
         "uncommon" => "Uncommon",
-        "rare" => "Rare",
-        "mythic" => "Mythic Rare",
-        _ => rarity ?? "Unknown"
+        "rare"     => "Rare",
+        "mythic"   => "Mythic Rare",
+        _          => rarity ?? "Unknown"
     };
 
-    private void AddToCollection()
+    private static string GetSourceLabel(string? source) => source switch
     {
-        JS.InvokeVoidAsync("alert", $"Added {card?.Name} to collection!");
-    }
+        "wotc" => "Wizards of the Coast",
+        "scryfall" => "Scryfall",
+        _ => source ?? "Unknown"
+    };
 
-    private void AddToDeck()
-    {
-        JS.InvokeVoidAsync("alert", $"Added {card?.Name} to deck!");
-    }
+    private void NavigateToCard(string id) => Navigation.NavigateTo("/card/" + id);
 
-    private void ShareCard()
-    {
-        JS.InvokeVoidAsync("alert", $"Share link for {card?.Name} copied!");
-    }
+    private void AddToCollection() => JS.InvokeVoidAsync("alert", $"Added {card?.Name} to collection!");
+    private void AddToDeck()       => JS.InvokeVoidAsync("alert", $"Added {card?.Name} to deck!");
+    private void ShareCard()       => JS.InvokeVoidAsync("alert", $"Share link for {card?.Name} copied!");
 }

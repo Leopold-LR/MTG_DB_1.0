@@ -482,6 +482,290 @@
     border-color: rgba(255, 255, 255, 0.2);
 }
 
+/* ---- Set symbol & rarity badge ---- */
+.card-meta-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.set-symbol {
+    width: 18px;
+    height: 18px;
+    object-fit: contain;
+    filter: invert(1) opacity(0.7);
+    flex-shrink: 0;
+}
+
+.rarity-badge {
+    display: inline-block;
+    padding: 0.25rem 0.6rem;
+    border-radius: 6px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    border: 1px solid currentColor;
+}
+
+.rarity-common   { color: #a0aec0; border-color: rgba(160,174,192,0.3); background: rgba(160,174,192,0.08); }
+.rarity-uncommon { color: #4caf72; border-color: rgba(76,175,114,0.3);  background: rgba(76,175,114,0.08); }
+.rarity-rare     { color: #d69e2e; border-color: rgba(214,158,46,0.3);  background: rgba(214,158,46,0.08); }
+.rarity-mythic   { color: #e05c4b; border-color: rgba(224,92,75,0.3);   background: rgba(224,92,75,0.08); }
+
+/* ---- Custom tab nav ---- */
+.details-tabs {
+    list-style: none;
+    margin: 0 0 1.75rem 0;
+    padding: 0;
+    display: flex;
+    gap: 0.25rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.tab-btn {
+    background: none;
+    border: none;
+    color: rgba(232, 232, 240, 0.55);
+    font-family: 'Cinzel', Georgia, serif;
+    font-size: 0.82rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.6rem 1.1rem 0.75rem;
+    cursor: pointer;
+    transition: color 0.2s ease, border-color 0.2s ease;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+}
+
+.tab-btn:hover {
+    color: rgba(232, 232, 240, 0.85);
+}
+
+.tab-btn.active {
+    color: #ecc94b;
+    border-bottom-color: #ecc94b;
+}
+
+/* ---- Tab content wrapper ---- */
+.tab-content {
+    animation: fadeInUp 0.25s ease both;
+}
+
+/* ---- Prices table ---- */
+.prices-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+}
+
+.prices-table th {
+    text-align: left;
+    padding: 0.6rem 0.875rem;
+    color: rgba(232, 232, 240, 0.5);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.prices-table td {
+    padding: 0.7rem 0.875rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    color: #e8e8f0;
+}
+
+.prices-table tr:last-child td {
+    border-bottom: none;
+}
+
+.prices-table td:first-child {
+    color: rgba(232, 232, 240, 0.6);
+}
+
+.prices-table td:not(:first-child) {
+    font-weight: 600;
+    color: #ecc94b;
+}
+
+.prices-table tr:hover td {
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.price-note {
+    font-size: 0.78rem;
+    color: rgba(232, 232, 240, 0.4);
+    margin-top: 0.75rem;
+}
+
+.price-note a {
+    color: rgba(236, 201, 75, 0.7);
+    text-decoration: none;
+}
+
+.price-note a:hover {
+    color: #ecc94b;
+}
+
+/* ---- Rulings ---- */
+.rulings-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.ruling-item {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 10px;
+    padding: 1rem 1.25rem;
+    border-left: 3px solid rgba(236, 201, 75, 0.35);
+}
+
+.ruling-meta {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+}
+
+.ruling-source {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #ecc94b;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.ruling-date {
+    font-size: 0.75rem;
+    color: rgba(232, 232, 240, 0.4);
+}
+
+.ruling-comment {
+    font-size: 0.9rem;
+    color: rgba(232, 232, 240, 0.85);
+    line-height: 1.65;
+    margin: 0;
+}
+
+/* ---- DFC face rules ---- */
+.dfc-face-rules {
+    margin-bottom: 0.875rem;
+}
+
+.dfc-face-rules strong {
+    display: block;
+    margin-bottom: 0.25rem;
+    color: #ecc94b;
+    font-size: 0.9rem;
+}
+
+.dfc-face-rules:last-child {
+    margin-bottom: 0;
+}
+
+/* ---- Prints grid ---- */
+.prints-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 0.875rem;
+}
+
+.print-card {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.print-card:hover {
+    border-color: rgba(236, 201, 75, 0.3);
+    transform: translateY(-2px);
+}
+
+.print-thumb {
+    width: 100%;
+    display: block;
+    border-radius: 6px 6px 0 0;
+}
+
+.print-thumb-placeholder {
+    height: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.print-info {
+    padding: 0.6rem 0.75rem;
+}
+
+.print-set {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #e8e8f0;
+    margin-bottom: 0.2rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.print-num {
+    font-size: 0.7rem;
+    color: rgba(232, 232, 240, 0.5);
+    margin-bottom: 0.2rem;
+}
+
+.print-price {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #ecc94b;
+}
+
+/* ---- Tab loading / empty states ---- */
+.tab-loading {
+    display: flex;
+    align-items: center;
+    gap: 0.875rem;
+    padding: 2.5rem 0;
+    color: rgba(232, 232, 240, 0.6);
+    font-size: 0.9rem;
+}
+
+.tab-spinner {
+    width: 22px;
+    height: 22px;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    border-top-color: #ecc94b;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    flex-shrink: 0;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: rgba(232, 232, 240, 0.45);
+}
+
+.empty-state span {
+    font-size: 2.5rem;
+    display: block;
+    margin-bottom: 0.75rem;
+}
+
+.empty-state p {
+    font-size: 0.9rem;
+    margin: 0;
+}
+
 /* ---- Responsive ---- */
 @media (max-width: 1024px) {
     .card-details-container {

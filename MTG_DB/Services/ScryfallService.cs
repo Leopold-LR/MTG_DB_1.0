@@ -1,4 +1,5 @@
 ﻿using MtgInventoryApp.Models;
+using MTG_DB.Models;
 using System.Net.Http;
 using System.Net.Http.Json;
 
@@ -79,11 +80,45 @@ public class ScryfallService
                 return await response.Content.ReadFromJsonAsync<ScryfallCard>(cancellationToken: ct);
             }
         }
-        catch (HttpRequestException)
-        {
-
-        }
+        catch (HttpRequestException) { }
 
         return null;
+    }
+
+    public async Task<List<ScryfallRuling>> GetRulingsAsync(string cardId, CancellationToken ct = default)
+    {
+        if (string.IsNullOrWhiteSpace(cardId)) return [];
+
+        try
+        {
+            var response = await _http.GetAsync($"cards/{cardId}/rulings", ct);
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<ScryfallRulingListResponse>(cancellationToken: ct);
+                return result?.Data ?? [];
+            }
+        }
+        catch (HttpRequestException) { }
+
+        return [];
+    }
+
+    public async Task<List<ScryfallCard>> GetPrintsAsync(string cardName, string excludeId, CancellationToken ct = default)
+    {
+        if (string.IsNullOrWhiteSpace(cardName)) return [];
+
+        try
+        {
+            var q = Uri.EscapeDataString($"!\"{cardName}\"");
+            var response = await _http.GetAsync($"cards/search?q={q}&unique=prints&order=released", ct);
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<ScryfallListResponse>(cancellationToken: ct);
+                return result?.Data?.Where(c => c.Id != excludeId).ToList() ?? [];
+            }
+        }
+        catch (HttpRequestException) { }
+
+        return [];
     }
 }

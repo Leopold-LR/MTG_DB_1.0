@@ -18,6 +18,9 @@ namespace MTG_DB.Models
 
         [JsonPropertyName("tix")]
         public string? Tix { get; set; }
+
+        [JsonPropertyName("eur_foil")]
+        public string? EurFoil { get; set; }
     }
 
 }
