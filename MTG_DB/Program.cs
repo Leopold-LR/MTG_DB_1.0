@@ -27,13 +27,13 @@ builder.Services.AddHttpClient<CryptMtgService>(client =>
 });
 
 builder.Services.AddDbContext<CollectionDbContext>(options =>
-    options.UseSqlite("Data Source=mtg_collections.db"));
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddScoped<CollectionService>();
 
 var app = builder.Build();
 
-// Ensure SQLite database and schema are created on startup
+// Ensure Supabase database schema is created on startup
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<CollectionDbContext>();
