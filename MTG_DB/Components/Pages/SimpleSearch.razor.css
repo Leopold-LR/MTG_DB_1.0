@@ -42,32 +42,51 @@
     padding: 0 2rem;
     display: flex;
     align-items: center;
-    justify-content: space-between;
     gap: 1.5rem;
 }
 
 /* Brand in header */
 .logo {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none !important;
+    flex-shrink: 0;
+    transition: opacity 0.2s ease;
+}
+
+.logo:hover {
+    opacity: 0.85;
+    text-decoration: none !important;
+}
+
+.logo-icon {
+    font-size: 1.35rem;
+    color: #ecc94b;
+    line-height: 1;
+    flex-shrink: 0;
+}
+
+.logo-text {
     font-family: 'Cinzel', Georgia, serif;
-    font-size: 1.75rem;
+    font-size: 1.35rem;
     font-weight: 700;
+    letter-spacing: 0.06em;
+    line-height: 1;
     background: linear-gradient(135deg, #ecc94b, #d69e2e);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-    cursor: pointer;
-    letter-spacing: 0.06em;
-    flex-shrink: 0;
+    white-space: nowrap;
 }
 
 /* Search box */
 .search-box {
     display: flex;
     flex: 1;
-    max-width: 600px;
     background: rgba(255, 255, 255, 0.06);
     border-radius: 12px;
-    padding: 0.4rem;
+    padding: 0.35rem;
     border: 1px solid rgba(255, 255, 255, 0.1);
     transition: border-color 0.2s, box-shadow 0.2s;
 }
@@ -97,13 +116,28 @@
     background: linear-gradient(135deg, #ecc94b, #d69e2e);
     color: #0d0d1a;
     border: none;
-    padding: 0.75rem 1.25rem;
+    padding: 0.75rem 1rem;
     border-radius: 8px;
     font-weight: 700;
     font-family: 'Inter', sans-serif;
     cursor: pointer;
     transition: all 0.25s ease;
     flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+}
+
+.search-btn svg {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+}
+
+.search-btn-spinner {
+    animation: spin 0.8s linear infinite;
 }
 
 .search-btn:hover:not(:disabled) {
@@ -115,24 +149,6 @@
 .search-btn:disabled {
     opacity: 0.55;
     cursor: not-allowed;
-}
-
-.home-btn {
-    background: rgba(255, 255, 255, 0.06);
-    color: rgba(232, 232, 240, 0.8);
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    padding: 0.7rem 1.25rem;
-    border-radius: 8px;
-    font-family: 'Inter', sans-serif;
-    font-size: 0.875rem;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    flex-shrink: 0;
-}
-
-.home-btn:hover {
-    background: rgba(255, 255, 255, 0.12);
-    color: #e8e8f0;
 }
 
 /* ---- Filters toggle button ---- */
@@ -826,18 +842,14 @@
 }
 
 /* ---- Responsive ---- */
-@media (max-width: 768px) {
+@media (max-width: 640px) {
     .header-content {
-        flex-direction: column;
-        gap: 0.875rem;
-        align-items: stretch;
+        gap: 0.75rem;
+        padding: 0 1rem;
     }
 
-    .logo { font-size: 1.4rem; }
-
-    .search-box {
-        max-width: 100%;
-    }
+    .logo-text { font-size: 1.1rem; }
+    .logo-icon { font-size: 1.1rem; }
 
     .search-main {
         padding: 1rem;

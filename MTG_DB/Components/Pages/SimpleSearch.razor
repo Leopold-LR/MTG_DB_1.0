@@ -12,7 +12,10 @@
     <!-- Header -->
     <header class="search-header">
         <div class="header-content">
-            <h1 class="logo" @onclick='() => Navigation.NavigateTo("/")'>MTGHUB</h1>
+            <a class="logo" href="/" title="Back to home">
+                <span class="logo-icon">⬡</span>
+                <span class="logo-text">MTGHUB</span>
+            </a>
             <div class="search-box">
                 <input class="search-input"
                        @bind="query"
@@ -22,15 +25,20 @@
                 <button class="search-btn" @onclick="DoSearch" disabled="@isLoading">
                     @if (isLoading)
                     {
-                        <span>Searching...</span>
+                        <svg class="search-btn-spinner" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <circle cx="12" cy="12" r="9" stroke-opacity="0.3"/>
+                            <path d="M12 3a9 9 0 0 1 9 9" stroke-linecap="round"/>
+                        </svg>
                     }
                     else
                     {
-                        <span>🔍</span>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="11" cy="11" r="8"/>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                        </svg>
                     }
                 </button>
             </div>
-            <button class="home-btn" @onclick='() => Navigation.NavigateTo("/")'>Home</button>
         </div>
     </header>
 
