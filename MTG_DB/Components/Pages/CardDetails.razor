@@ -587,7 +587,13 @@
         _ => source ?? "Unknown"
     };
 
-    private void NavigateToCard(string id) => Navigation.NavigateTo("/card/" + id);
+    private void NavigateToCard(string id)
+    {
+        if (!string.IsNullOrEmpty(ReturnQuery))
+            Navigation.NavigateTo($"/card/{id}?returnQuery={Uri.EscapeDataString(ReturnQuery)}&returnPage={ReturnPage}");
+        else
+            Navigation.NavigateTo("/card/" + id);
+    }
 
     private void AddToCollection() => JS.InvokeVoidAsync("alert", $"Added {card?.Name} to collection!");
     private void AddToDeck()       => JS.InvokeVoidAsync("alert", $"Added {card?.Name} to deck!");

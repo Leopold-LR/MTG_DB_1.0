@@ -464,7 +464,7 @@
 }
 
 .results-header-left {
-    text-align: center;
+    text-align: left;
     flex: 1;
 }
 
@@ -869,4 +869,46 @@
     .cards-grid {
         grid-template-columns: repeat(6, 1fr);
     }
+}
+
+/* ---- Pagination ---- */
+.pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 3rem;
+    padding-bottom: 2rem;
+}
+
+.page-btn {
+    background: rgba(255, 255, 255, 0.07);
+    color: rgba(232, 232, 240, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    padding: 0.6rem 1.5rem;
+    border-radius: 8px;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.page-btn:hover:not(:disabled) {
+    background: rgba(236, 201, 75, 0.12);
+    border-color: rgba(236, 201, 75, 0.3);
+    color: #ecc94b;
+}
+
+.page-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.page-info {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.875rem;
+    color: rgba(232, 232, 240, 0.45);
+    min-width: 120px;
+    text-align: center;
 }
