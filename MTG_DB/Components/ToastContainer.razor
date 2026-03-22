@@ -1,0 +1,30 @@
+@using MtgInventoryApp.Services
+@inject ToastService ToastService
+@implements IDisposable
+
+@if (ToastService.Toasts.Any())
+{
+    <div class="toast-container" role="alert" aria-live="polite">
+        @foreach (var toast in ToastService.Toasts)
+        {
+            <div class="toast-item toast-@toast.Level.ToString().ToLower()" @key="toast.Id">
+                <span class="toast-msg">@toast.Message</span>
+                <button class="toast-close" aria-label="Dismiss" @onclick="() => ToastService.Remove(toast.Id)">×</button>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    protected override void OnInitialized()
+    {
+        ToastService.OnChange += OnToastChanged;
+    }
+
+    private void OnToastChanged() => InvokeAsync(StateHasChanged);
+
+    public void Dispose()
+    {
+        ToastService.OnChange -= OnToastChanged;
+    }
+}

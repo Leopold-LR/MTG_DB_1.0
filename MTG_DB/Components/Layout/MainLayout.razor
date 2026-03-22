@@ -1,10 +1,24 @@
-﻿@inherits LayoutComponentBase
+@inherits LayoutComponentBase
 
 <PageTitle>MTGHUB</PageTitle>
 
 <div class="main-layout">
-    @Body
+    <ErrorBoundary>
+        <ChildContent>
+            @Body
+        </ChildContent>
+        <ErrorContent Context="ex">
+            <div class="global-error-panel">
+                <div class="global-error-icon">⚠️</div>
+                <h2>Something went wrong</h2>
+                <p>@ex.Message</p>
+                <a href="/" class="global-error-reload">Go to Home</a>
+            </div>
+        </ErrorContent>
+    </ErrorBoundary>
 </div>
+
+<ToastContainer />
 
 <div id="blazor-error-ui">
     An unhandled error has occurred.

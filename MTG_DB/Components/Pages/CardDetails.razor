@@ -1,11 +1,13 @@
-﻿@page "/card/{id}"
+@page "/card/{id}"
 @using MTG_DB.Models
 @using MtgInventoryApp.Models
+@using MtgInventoryApp.Services
 @inject MtgInventoryApp.Services.ScryfallService Scryfall
+@inject ToastService ToastService
 @inject NavigationManager Navigation
 @inject IJSRuntime JS
 
-<PageTitle>MTGHUB - @card?.Name</PageTitle>
+<PageTitle>MTGHUB - @(card?.Name ?? "Card Details")</PageTitle>
 
 <div class="card-details-page">
     <!-- Header -->
@@ -20,14 +22,49 @@
 
     <!-- Main Content -->
     <main class="details-main">
-        @if (card == null)
+        @if (isLoading)
         {
-            <div class="loading">
-                <div class="spinner"></div>
-                <p>Loading card details...</p>
+            <div class="card-details-container">
+                <!-- Skeleton: image column -->
+                <div class="card-image-section">
+                    <div class="image-container">
+                        <div class="skeleton-image-large"></div>
+                    </div>
+                </div>
+                <!-- Skeleton: info column -->
+                <div class="card-info-section">
+                    <div class="card-header">
+                        <div class="skeleton-line skeleton-title"></div>
+                        <div class="skeleton-line skeleton-badge"></div>
+                    </div>
+                    @for (int i = 0; i < 4; i++)
+                    {
+                        <div class="info-group">
+                            <div class="skeleton-line skeleton-group-label"></div>
+                            <div class="skeleton-grid-2">
+                                <div class="skeleton-line"></div>
+                                <div class="skeleton-line"></div>
+                                <div class="skeleton-line skeleton-line-short"></div>
+                                <div class="skeleton-line skeleton-line-short"></div>
+                            </div>
+                        </div>
+                    }
+                </div>
             </div>
         }
-        else
+        else if (hasError)
+        {
+            <div class="error-state-details">
+                <div class="error-icon-large">⚠️</div>
+                <h2>Failed to Load Card</h2>
+                <p>@errorMessage</p>
+                <div class="error-actions">
+                    <button class="action-btn primary" @onclick="LoadCardData">Retry</button>
+                    <button class="back-btn" @onclick="GoBack">← Back to Search</button>
+                </div>
+            </div>
+        }
+        else if (card != null)
         {
             <div class="card-details-container">
                 <!-- Left Column - Card Image -->
@@ -219,6 +256,9 @@
     public int ReturnPage { get; set; } = 1;
 
     private ScryfallCard? card;
+    private bool isLoading = true;
+    private bool hasError;
+    private string? errorMessage;
     private bool showBackFace = false;
 
     protected override async Task OnInitializedAsync()
@@ -227,43 +267,47 @@
         {
             await LoadCardData();
         }
+        else
+        {
+            isLoading = false;
+        }
     }
 
     private async Task LoadCardData()
     {
-        await Task.Delay(500);
+        isLoading = true;
+        hasError = false;
+        errorMessage = null;
+        card = null;
+        StateHasChanged();
 
         try
         {
             card = await Scryfall.GetCardByIdAsync(Id);
-            if (card != null)
+            if (card == null)
             {
-                return;
+                hasError = true;
+                errorMessage = "Card not found.";
+                ToastService.Show("Card not found.");
             }
         }
-        catch
+        catch (HttpRequestException)
         {
-
+            hasError = true;
+            errorMessage = "Network error — check your connection and try again.";
+            ToastService.Show(errorMessage);
         }
-
-        card = new ScryfallCard
-            {
-                Id = Id,
-                Name = "Snapcaster Mage",
-                Set = "isd",
-                SetName = "Innistrad",
-                Rarity = "rare",
-                ImageUris = new ScryfallImageUris
-                {
-                    Normal = "https://cards.scryfall.io/normal/front/0/c/0c081082-5d67-4ab4-9def-1f13419d1d4c.jpg",
-                    Large = "https://cards.scryfall.io/large/front/0/c/0c081082-5d67-4ab4-9def-1f13419d1d4c.jpg"
-                },
-                Prices = new ScryfallPrices
-                {
-                    Usd = "45.50",
-                    UsdFoil = "120.00"
-                }
-            };
+        catch (Exception ex)
+        {
+            hasError = true;
+            errorMessage = $"Failed to load card: {ex.Message}";
+            ToastService.Show(errorMessage);
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
     }
 
     private void GoBack()

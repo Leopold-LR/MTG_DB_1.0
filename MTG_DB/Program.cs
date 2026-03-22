@@ -6,6 +6,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
+builder.Services.AddScoped<ToastService>();
+
 builder.Services.AddHttpClient<ScryfallService>(client =>
 {
     client.BaseAddress = new Uri("https://api.scryfall.com/");
