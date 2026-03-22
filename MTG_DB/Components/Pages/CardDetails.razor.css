@@ -688,6 +688,12 @@
     transform: translateY(-2px);
 }
 
+.print-card.print-selected {
+    border-color: #ecc94b;
+    box-shadow: 0 0 0 2px rgba(236, 201, 75, 0.35);
+    transform: translateY(-2px);
+}
+
 .print-thumb {
     width: 100%;
     display: block;
@@ -726,6 +732,40 @@
 .print-price {
     font-size: 0.8rem;
     font-weight: 700;
+    color: #ecc94b;
+}
+
+.print-actions {
+    margin-top: 0.4rem;
+}
+
+.print-navigate-btn {
+    background: none;
+    border: none;
+    color: rgba(236, 201, 75, 0.7);
+    font-size: 0.7rem;
+    cursor: pointer;
+    padding: 0;
+    text-decoration: underline;
+    transition: color 0.15s ease;
+}
+
+.print-navigate-btn:hover {
+    color: #ecc94b;
+}
+
+.reset-preview-btn {
+    background: none;
+    border: none;
+    color: rgba(236, 201, 75, 0.8);
+    font-size: inherit;
+    cursor: pointer;
+    padding: 0;
+    text-decoration: underline;
+    transition: color 0.15s ease;
+}
+
+.reset-preview-btn:hover {
     color: #ecc94b;
 }
 

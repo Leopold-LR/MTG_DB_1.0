@@ -71,7 +71,7 @@
                 <div class="card-image-section">
                     <div class="image-container">
                         @{
-                            var cardImageUrl = GetCardImage(card);
+                            var cardImageUrl = selectedPrintImageUrl ?? GetCardImage(card);
                         }
                         @if (!string.IsNullOrEmpty(cardImageUrl))
                         {
@@ -79,7 +79,16 @@
                                  class="main-card-image"
                                  alt="@card.Name"
                                  @onclick='() => JS.InvokeVoidAsync("window.open", cardImageUrl, "_blank")' />
-                            <div class="image-size-note">Click to view full size</div>
+                            <div class="image-size-note">
+                                @if (selectedPrintId != null)
+                                {
+                                    <span>Selected printing — </span><button class="reset-preview-btn" @onclick="ResetPreview">Show original</button>
+                                }
+                                else
+                                {
+                                    <span>Click to view full size</span>
+                                }
+                            </div>
                         }
                         else
                         {
@@ -386,7 +395,7 @@
                                     {
                                         var printImg = print.ImageUris?.Normal ?? print.CardFaces?.FirstOrDefault()?.ImageUris?.Normal;
                                         var printId = print.Id;
-                                        <div class="print-card" @onclick="() => NavigateToCard(printId)">
+                                        <div class="print-card @(selectedPrintId == print.Id ? "print-selected" : "")" @onclick="() => SelectPrint(print)">
                                             @if (!string.IsNullOrEmpty(printImg))
                                             {
                                                 <img src="@printImg" alt="@print.SetName" class="print-thumb" />
@@ -402,6 +411,9 @@
                                                 {
                                                     <div class="print-price">$@print.Prices.Usd</div>
                                                 }
+                                                <div class="print-actions">
+                                                    <button class="print-navigate-btn" @onclick:stopPropagation="true" @onclick="() => NavigateToCard(printId)">View card →</button>
+                                                </div>
                                             </div>
                                         </div>
                                     }
@@ -450,6 +462,9 @@
 
     private List<ScryfallCard>? prints;
     private bool isLoadingPrints;
+
+    private string? selectedPrintId = null;
+    private string? selectedPrintImageUrl = null;
 
     protected override async Task OnInitializedAsync()
     {
@@ -593,6 +608,21 @@
             Navigation.NavigateTo($"/card/{id}?returnQuery={Uri.EscapeDataString(ReturnQuery)}&returnPage={ReturnPage}");
         else
             Navigation.NavigateTo("/card/" + id);
+    }
+
+    private void SelectPrint(ScryfallCard print)
+    {
+        selectedPrintId = print.Id;
+        selectedPrintImageUrl = print.ImageUris?.Large
+            ?? print.ImageUris?.Normal
+            ?? print.CardFaces?.FirstOrDefault()?.ImageUris?.Large
+            ?? print.CardFaces?.FirstOrDefault()?.ImageUris?.Normal;
+    }
+
+    private void ResetPreview()
+    {
+        selectedPrintId = null;
+        selectedPrintImageUrl = null;
     }
 
     private void AddToCollection() => JS.InvokeVoidAsync("alert", $"Added {card?.Name} to collection!");
