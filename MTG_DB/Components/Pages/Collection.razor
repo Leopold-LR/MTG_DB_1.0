@@ -58,6 +58,20 @@
                         </button>
                     }
                 </div>
+
+                <!-- Type filter tabs -->
+                <div class="type-filter-tabs">
+                    <button class="type-tab @(activeTypeFilter == null ? "type-tab-active" : "")"
+                            @onclick='() => activeTypeFilter = null'>All</button>
+                    @foreach (var t in Enum.GetValues<CollectionType>())
+                    {
+                        <button class="type-tab @(activeTypeFilter == t ? "type-tab-active" : "")"
+                                @onclick="() => activeTypeFilter = t">
+                            @GetTypeIcon(t) @t
+                        </button>
+                    }
+                </div>
+
                 <span class="col-list-count">
                     @FilteredCollections.Count() node@(FilteredCollections.Count() == 1 ? "" : "s")
                 </span>
@@ -122,7 +136,10 @@
 
                                     <!-- Body -->
                                     <div class="tile-body">
-                                        <h2 class="tile-name">@group.Name</h2>
+                                        <div class="tile-name-row">
+                                            <h2 class="tile-name">@group.Name</h2>
+                                            <span class="tile-type-badge tile-type-@group.Type.ToString().ToLower()">@GetTypeIcon(group.Type) @group.Type</span>
+                                        </div>
                                         <div class="tile-stats-row">
                                             <span class="tile-stat">
                                                 <span class="tile-stat-val">@totalQty</span>
@@ -196,6 +213,21 @@
                     </div>
 
                     <div class="modal-body">
+                        <!-- Type picker -->
+                        <div class="modal-field">
+                            <label class="modal-label">Type</label>
+                            <div class="modal-type-selector">
+                                @foreach (var t in Enum.GetValues<CollectionType>())
+                                {
+                                    <button class="modal-type-option @(newCollectionType == t ? "modal-type-selected" : "")"
+                                            @onclick="() => SelectCollectionType(t)">
+                                        <span class="modal-type-icon">@GetTypeIcon(t)</span>
+                                        <span class="modal-type-label">@t</span>
+                                    </button>
+                                }
+                            </div>
+                        </div>
+
                         <!-- Name -->
                         <div class="modal-field">
                             <label class="modal-label">Collection Name</label>
@@ -257,6 +289,9 @@
                     <span class="detail-title-icon">@ActiveGroup.Icon</span>
                     @ActiveGroup.Name
                 </h1>
+                <span class="detail-type-badge detail-type-@ActiveGroup.Type.ToString().ToLower()">
+                    @GetTypeIcon(ActiveGroup.Type) @ActiveGroup.Type
+                </span>
             </div>
         </header>
 
@@ -361,55 +396,92 @@
                         <button class="clear-search-btn" @onclick='() => filterQuery = ""'>Clear search</button>
                     </div>
                 }
-                else
+                else if (ActiveGroup.Type == CollectionType.Deck)
                 {
-                    <!-- Card Grid -->
+                    <!-- ── Deck View ──────────────────────────────── -->
+                    <!-- Deck size progress -->
+                    <div class="deck-progress-wrap">
+                        <div class="deck-progress-header">
+                            <span class="deck-progress-label">Deck Size</span>
+                            <span class="deck-progress-count @(TotalCards >= 60 ? "deck-progress-complete" : "")">
+                                @TotalCards / 60
+                                @if (TotalCards < 60)
+                                {
+                                    <span class="deck-progress-needed">(@(60 - TotalCards) needed)</span>
+                                }
+                                else if (TotalCards == 60)
+                                {
+                                    <span class="deck-progress-ok">✓ Complete</span>
+                                }
+                                else
+                                {
+                                    <span class="deck-progress-over">+@(TotalCards - 60) over</span>
+                                }
+                            </span>
+                        </div>
+                        <div class="deck-progress-bar">
+                            <div class="deck-progress-fill" style="width: @Math.Min(TotalCards * 100 / 60, 100)%"></div>
+                        </div>
+                    </div>
+
+                    <!-- Mana curve -->
+                    <div class="mana-curve-wrap">
+                        <h3 class="mana-curve-title">Mana Curve</h3>
+                        <div class="mana-curve-bars">
+                            @for (int cmc = 0; cmc <= 7; cmc++)
+                            {
+                                var cmcKey = cmc;
+                                var count = ManaCurve.GetValueOrDefault(cmcKey);
+                                var heightPct = ManaCurveMax > 0 ? (int)Math.Round((double)count / ManaCurveMax * 100) : 0;
+                                <div class="curve-col">
+                                    @if (count > 0)
+                                    {
+                                        <span class="curve-count">@count</span>
+                                    }
+                                    <div class="curve-bar-wrap">
+                                        <div class="curve-bar-fill" style="height: @heightPct%"></div>
+                                    </div>
+                                    <span class="curve-cmc-label">@(cmcKey == 7 ? "7+" : cmcKey.ToString())</span>
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Card grid -->
                     <div class="collection-grid">
                         @foreach (var entry in FilteredCollection)
                         {
-                            <div class="col-card @(entry.IsFoil ? "col-card-foil" : "")">
-
-                                <!-- Image -->
-                                <div class="col-image-wrap">
-                                    @if (!string.IsNullOrEmpty(entry.ImageUrl))
-                                    {
-                                        <img src="@entry.ImageUrl" class="col-card-img" alt="@entry.Name" loading="lazy" />
-                                    }
-                                    else
-                                    {
-                                        <div class="col-no-image">
-                                            <span>🃏</span>
-                                        </div>
-                                    }
-                                    @if (entry.IsFoil)
-                                    {
-                                        <div class="foil-overlay"></div>
-                                        <div class="foil-badge">✦ Foil</div>
-                                    }
-                                </div>
-
-                                <!-- Card Body -->
-                                <div class="col-card-body">
-                                    <h3 class="col-card-name">@entry.Name</h3>
-                                    <div class="col-card-meta">
-                                        <span class="col-set-name">@entry.SetName</span>
-                                        <span class="col-set-code">@entry.SetCode.ToUpper()</span>
-                                    </div>
-
-                                    <div class="col-card-footer">
-                                        <!-- Condition Badge -->
-                                        <span class="condition-badge condition-@entry.Condition.ToLower()">@entry.Condition</span>
-
-                                        <!-- Quantity Stepper -->
-                                        <div class="qty-stepper">
-                                            <button class="qty-btn" @onclick="() => Decrement(entry)" disabled="@(entry.Quantity <= 1)" title="Decrease">−</button>
-                                            <span class="qty-value" title="Quantity">@entry.Quantity×</span>
-                                            <button class="qty-btn" @onclick="() => Increment(entry)" title="Increase">+</button>
-                                        </div>
-                                    </div>
-                                </div>
-
+                            @CardTile(entry)
+                        }
+                    </div>
+                }
+                else if (ActiveGroup.Type == CollectionType.Binder)
+                {
+                    <!-- ── Binder View: grouped by set ────────────── -->
+                    @foreach (var setGroup in BinderBySet)
+                    {
+                        <div class="binder-set-section">
+                            <div class="binder-set-header">
+                                <span class="binder-set-code">@setGroup.First().SetCode.ToUpper()</span>
+                                <span class="binder-set-name">@setGroup.Key</span>
+                                <span class="binder-set-count">@setGroup.Sum(e => e.Quantity) card@(setGroup.Sum(e => e.Quantity) == 1 ? "" : "s")</span>
                             </div>
+                            <div class="collection-grid">
+                                @foreach (var entry in setGroup)
+                                {
+                                    @CardTile(entry)
+                                }
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <!-- ── Bulk View: flat grid (default) ─────────── -->
+                    <div class="collection-grid">
+                        @foreach (var entry in FilteredCollection)
+                        {
+                            @CardTile(entry)
                         }
                     </div>
                 }
@@ -420,7 +492,49 @@
 
 </div>
 
+@* ── Card tile render fragment ─────────────────────────────────────────── *@
 @code {
+    private RenderFragment CardTile(CollectionEntry entry) =>
+        @<div class="col-card @(entry.IsFoil ? "col-card-foil" : "")">
+            <div class="col-image-wrap">
+                @if (!string.IsNullOrEmpty(entry.ImageUrl))
+                {
+                    <img src="@entry.ImageUrl" class="col-card-img" alt="@entry.Name" loading="lazy" />
+                }
+                else
+                {
+                    <div class="col-no-image">
+                        <span>🃏</span>
+                    </div>
+                }
+                @if (entry.IsFoil)
+                {
+                    <div class="foil-overlay"></div>
+                    <div class="foil-badge">✦ Foil</div>
+                }
+            </div>
+            <div class="col-card-body">
+                <h3 class="col-card-name">@entry.Name</h3>
+                <div class="col-card-meta">
+                    <span class="col-set-name">@entry.SetName</span>
+                    <span class="col-set-code">@entry.SetCode.ToUpper()</span>
+                </div>
+                <div class="col-card-footer">
+                    <span class="condition-badge condition-@entry.Condition.ToLower()">@entry.Condition</span>
+                    <div class="qty-stepper">
+                        <button class="qty-btn" @onclick="() => Decrement(entry)" disabled="@(entry.Quantity <= 1)" title="Decrease">−</button>
+                        <span class="qty-value" title="Quantity">@entry.Quantity×</span>
+                        <button class="qty-btn" @onclick="() => Increment(entry)" title="Increase">+</button>
+                    </div>
+                </div>
+            </div>
+        </div>;
+}
+
+@code {
+    // ── Collection type ────────────────────────────────────────────────────────
+    private enum CollectionType { Binder, Deck, Bulk }
+
     // ── Collection entry model ────────────────────────────────────────────────
     private class CollectionEntry
     {
@@ -433,14 +547,16 @@
         public bool   IsFoil    { get; set; }
         public int    Quantity  { get; set; } = 1;
         public decimal? PriceUsd { get; set; }
+        public int    Cmc       { get; set; } = 0;
     }
 
     // ── Collection group model ─────────────────────────────────────────────────
     private class CollectionGroup
     {
-        public string Key   { get; set; } = "";
-        public string Name  { get; set; } = "";
-        public string Icon  { get; set; } = "";
+        public string Key             { get; set; } = "";
+        public string Name            { get; set; } = "";
+        public string Icon            { get; set; } = "";
+        public CollectionType Type    { get; set; } = CollectionType.Bulk;
         public List<CollectionEntry> Cards { get; set; } = new();
     }
 
@@ -448,18 +564,20 @@
     private string filterQuery       = "";
     private string collectionSearch  = "";
 
-    // null  = showing collections list
-    // value = showing that collection's cards
     private string? selectedCollectionKey = null;
 
     // Create modal
-    private bool   showCreateModal    = false;
-    private string newCollectionName  = "";
-    private string newCollectionIcon  = "📦";
-    private string createError        = "";
+    private bool             showCreateModal   = false;
+    private string           newCollectionName = "";
+    private string           newCollectionIcon = "📦";
+    private CollectionType   newCollectionType = CollectionType.Bulk;
+    private string           createError       = "";
 
     // Delete confirmation
     private string? pendingDeleteKey = null;
+
+    // Type filter (null = All)
+    private CollectionType? activeTypeFilter = null;
 
     // Available icons for picker
     private static readonly string[] availableIcons = new[]
@@ -473,61 +591,61 @@
     {
         new()
         {
-            Key = "bulk", Name = "Bulk", Icon = "📦",
+            Key = "bulk", Name = "Bulk", Icon = "📦", Type = CollectionType.Bulk,
             Cards = new()
             {
-                new() { Name = "Lightning Bolt",   SetName = "Alpha",             SetCode = "LEA", Condition = "NM",  IsFoil = false, Quantity = 4,  PriceUsd = 1.50m  },
-                new() { Name = "Counterspell",     SetName = "Masters Edition 4", SetCode = "ME4", Condition = "NM",  IsFoil = false, Quantity = 4,  PriceUsd = 1.25m  },
-                new() { Name = "Sol Ring",         SetName = "Commander Masters", SetCode = "CMM", Condition = "MP",  IsFoil = false, Quantity = 3,  PriceUsd = 2.75m  },
+                new() { Name = "Lightning Bolt",   SetName = "Alpha",             SetCode = "LEA", Condition = "NM",  IsFoil = false, Quantity = 4,  PriceUsd = 1.50m,  Cmc = 1 },
+                new() { Name = "Counterspell",     SetName = "Masters Edition 4", SetCode = "ME4", Condition = "NM",  IsFoil = false, Quantity = 4,  PriceUsd = 1.25m,  Cmc = 2 },
+                new() { Name = "Sol Ring",         SetName = "Commander Masters", SetCode = "CMM", Condition = "MP",  IsFoil = false, Quantity = 3,  PriceUsd = 2.75m,  Cmc = 1 },
             }
         },
         new()
         {
-            Key = "binder1", Name = "Binder 1", Icon = "📗",
+            Key = "binder1", Name = "Binder 1", Icon = "📗", Type = CollectionType.Binder,
             Cards = new()
             {
-                new() { Name = "Black Lotus",            SetName = "Limited Edition Alpha", SetCode = "LEA", Condition = "NM",  IsFoil = false, Quantity = 1, PriceUsd = 45000m },
-                new() { Name = "Mox Diamond",            SetName = "Stronghold",            SetCode = "STH", Condition = "HP",  IsFoil = false, Quantity = 1, PriceUsd = 220m   },
-                new() { Name = "Force of Will",          SetName = "Alliances",             SetCode = "ALL", Condition = "LP",  IsFoil = false, Quantity = 2, PriceUsd = 75m    },
+                new() { Name = "Black Lotus",            SetName = "Limited Edition Alpha", SetCode = "LEA", Condition = "NM",  IsFoil = false, Quantity = 1, PriceUsd = 45000m, Cmc = 0 },
+                new() { Name = "Mox Diamond",            SetName = "Stronghold",            SetCode = "STH", Condition = "HP",  IsFoil = false, Quantity = 1, PriceUsd = 220m,   Cmc = 0 },
+                new() { Name = "Force of Will",          SetName = "Alliances",             SetCode = "ALL", Condition = "LP",  IsFoil = false, Quantity = 2, PriceUsd = 75m,    Cmc = 5 },
             }
         },
         new()
         {
-            Key = "binder2", Name = "Binder 2", Icon = "📘",
+            Key = "binder2", Name = "Binder 2", Icon = "📘", Type = CollectionType.Binder,
             Cards = new()
             {
-                new() { Name = "Jace, the Mind Sculptor", SetName = "Worldwake",          SetCode = "WWK", Condition = "LP", IsFoil = true,  Quantity = 2, PriceUsd = 55.99m },
-                new() { Name = "Wrenn and Six",           SetName = "Modern Horizons",    SetCode = "MH1", Condition = "DMG",IsFoil = false, Quantity = 1, PriceUsd = 45m    },
+                new() { Name = "Jace, the Mind Sculptor", SetName = "Worldwake",          SetCode = "WWK", Condition = "LP", IsFoil = true,  Quantity = 2, PriceUsd = 55.99m, Cmc = 4 },
+                new() { Name = "Wrenn and Six",           SetName = "Modern Horizons",    SetCode = "MH1", Condition = "DMG",IsFoil = false, Quantity = 1, PriceUsd = 45m,    Cmc = 2 },
             }
         },
         new()
         {
-            Key = "deck1", Name = "Deck 1", Icon = "🎴",
+            Key = "deck1", Name = "Deck 1", Icon = "🎴", Type = CollectionType.Deck,
             Cards = new()
             {
-                new() { Name = "Ragavan, Nimble Pilferer", SetName = "Modern Horizons 2", SetCode = "MH2", Condition = "NM", IsFoil = false, Quantity = 3, PriceUsd = 40m  },
-                new() { Name = "Lightning Bolt",           SetName = "Alpha",             SetCode = "LEA", Condition = "NM", IsFoil = false, Quantity = 4, PriceUsd = 1.50m },
-                new() { Name = "Force of Will",            SetName = "Alliances",         SetCode = "ALL", Condition = "NM", IsFoil = false, Quantity = 4, PriceUsd = 75m   },
+                new() { Name = "Ragavan, Nimble Pilferer", SetName = "Modern Horizons 2", SetCode = "MH2", Condition = "NM", IsFoil = false, Quantity = 3, PriceUsd = 40m,   Cmc = 1 },
+                new() { Name = "Lightning Bolt",           SetName = "Alpha",             SetCode = "LEA", Condition = "NM", IsFoil = false, Quantity = 4, PriceUsd = 1.50m, Cmc = 1 },
+                new() { Name = "Force of Will",            SetName = "Alliances",         SetCode = "ALL", Condition = "NM", IsFoil = false, Quantity = 4, PriceUsd = 75m,   Cmc = 5 },
             }
         },
         new()
         {
-            Key = "deck2", Name = "Deck 2", Icon = "🃏",
+            Key = "deck2", Name = "Deck 2", Icon = "🃏", Type = CollectionType.Deck,
             Cards = new()
             {
-                new() { Name = "Orcish Bowmasters", SetName = "Lord of the Rings", SetCode = "LTR", Condition = "NM", IsFoil = true,  Quantity = 2, PriceUsd = 22m   },
-                new() { Name = "Sol Ring",          SetName = "Commander Masters", SetCode = "CMM", Condition = "NM", IsFoil = true,  Quantity = 1, PriceUsd = 2.75m },
-                new() { Name = "Counterspell",      SetName = "Masters Edition 4", SetCode = "ME4", Condition = "NM", IsFoil = false, Quantity = 4, PriceUsd = 1.25m },
+                new() { Name = "Orcish Bowmasters", SetName = "Lord of the Rings", SetCode = "LTR", Condition = "NM", IsFoil = true,  Quantity = 2, PriceUsd = 22m,   Cmc = 2 },
+                new() { Name = "Sol Ring",          SetName = "Commander Masters", SetCode = "CMM", Condition = "NM", IsFoil = true,  Quantity = 1, PriceUsd = 2.75m, Cmc = 1 },
+                new() { Name = "Counterspell",      SetName = "Masters Edition 4", SetCode = "ME4", Condition = "NM", IsFoil = false, Quantity = 4, PriceUsd = 1.25m, Cmc = 2 },
             }
         },
     };
 
     // ── Filtered collections list ──────────────────────────────────────────────
     private IEnumerable<CollectionGroup> FilteredCollections =>
-        string.IsNullOrWhiteSpace(collectionSearch)
-            ? allCollections
-            : allCollections.Where(g =>
-                g.Name.Contains(collectionSearch, StringComparison.OrdinalIgnoreCase));
+        allCollections
+            .Where(g => activeTypeFilter == null || g.Type == activeTypeFilter)
+            .Where(g => string.IsNullOrWhiteSpace(collectionSearch) ||
+                        g.Name.Contains(collectionSearch, StringComparison.OrdinalIgnoreCase));
 
     // ── Active group ───────────────────────────────────────────────────────────
     private CollectionGroup ActiveGroup =>
@@ -548,6 +666,34 @@
         ? "$" + ActiveGroup.Cards.Sum(e => (e.PriceUsd ?? 0m) * e.Quantity).ToString("N2")
         : "N/A";
 
+    // ── Deck mana curve ───────────────────────────────────────────────────────
+    // Groups all cards in the active group by CMC (capped at 7), keyed by CMC value
+    private Dictionary<int, int> ManaCurve =>
+        ActiveGroup.Cards
+            .GroupBy(e => Math.Min(e.Cmc, 7))
+            .OrderBy(g => g.Key)
+            .ToDictionary(g => g.Key, g => g.Sum(e => e.Quantity));
+
+    private int ManaCurveMax => ManaCurve.Any() ? ManaCurve.Values.Max() : 1;
+
+    // ── Binder set grouping ───────────────────────────────────────────────────
+    private IEnumerable<IGrouping<string, CollectionEntry>> BinderBySet =>
+        FilteredCollection.GroupBy(e => e.SetName).OrderBy(g => g.Key);
+
+    // ── Type helpers ─────────────────────────────────────────────────────────
+    private static string GetTypeIcon(CollectionType t) => t switch
+    {
+        CollectionType.Binder => "📗",
+        CollectionType.Deck   => "🎴",
+        _                     => "📦"
+    };
+
+    private void SelectCollectionType(CollectionType t)
+    {
+        newCollectionType = t;
+        newCollectionIcon = GetTypeIcon(t);
+    }
+
     // ── Navigation ────────────────────────────────────────────────────────────
     private void OpenCollection(string key)
     {
@@ -565,10 +711,11 @@
     // ── Create collection modal ───────────────────────────────────────────────
     private void OpenCreateModal()
     {
-        newCollectionName  = "";
-        newCollectionIcon  = "📦";
-        createError        = "";
-        showCreateModal    = true;
+        newCollectionName = "";
+        newCollectionType = CollectionType.Bulk;
+        newCollectionIcon = GetTypeIcon(CollectionType.Bulk);
+        createError       = "";
+        showCreateModal   = true;
     }
 
     private void CloseCreateModal()
@@ -594,6 +741,7 @@
             Key   = key,
             Name  = name,
             Icon  = newCollectionIcon,
+            Type  = newCollectionType,
             Cards = new()
         });
 
