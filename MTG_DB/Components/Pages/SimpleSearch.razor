@@ -129,6 +129,10 @@
     [SupplyParameterFromQuery]
     public string? Query { get; set; }
 
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public int Page { get; set; } = 1;
+
     private string query = "";
     private List<ScryfallCard> allCards = new();
     private bool isLoading;
@@ -150,12 +154,21 @@
     private bool CanGoPrev => currentPage > 1;
     private bool CanGoNext => currentPage < TotalPages || hasMore;
 
-    protected override void OnParametersSet()
+    protected override async Task OnParametersSetAsync()
     {
-        if (!string.IsNullOrEmpty(Query))
+        if (!string.IsNullOrEmpty(Query) && Query != query)
         {
             query = Query;
-            _ = DoSearch();
+            await DoSearch();
+            // Restore page after search loads data
+            if (Page > 1)
+            {
+                // Load enough data to reach the target page
+                while (currentPage < Page)
+                {
+                    await NextPage();
+                }
+            }
         }
     }
 
@@ -224,9 +237,9 @@
         if (CanGoPrev) currentPage--;
     }
 
-    private void HandleKeyPress(KeyboardEventArgs e)
+    private async Task HandleKeyPress(KeyboardEventArgs e)
     {
-        if (e.Key == "Enter") DoSearch();
+        if (e.Key == "Enter") await DoSearch();
     }
 
     private void ResetSearch()
@@ -241,7 +254,8 @@
 
     private void ShowCardDetails(ScryfallCard card)
     {
-        Navigation.NavigateTo($"/card/{card.Id}");
+        var returnUrl = Uri.EscapeDataString(query);
+        Navigation.NavigateTo($"/card/{card.Id}?returnQuery={returnUrl}&returnPage={currentPage}");
     }
 
     private bool IsDoubleFacedCard(ScryfallCard card)

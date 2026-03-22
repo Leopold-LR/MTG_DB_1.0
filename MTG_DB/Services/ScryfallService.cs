@@ -4,6 +4,16 @@ using System.Net.Http.Json;
 
 namespace MtgInventoryApp.Services;
 
+// Set types considered "playable" for the set filter dropdown
+file static class PlayableSetTypes
+{
+    public static readonly HashSet<string> All = [
+        "expansion", "core", "masters", "draft_innovation",
+        "commander", "starter", "planechase", "archenemy",
+        "memorabilia", "funny"
+    ];
+}
+
 public class ScryfallService
 {
     private readonly HttpClient _http;

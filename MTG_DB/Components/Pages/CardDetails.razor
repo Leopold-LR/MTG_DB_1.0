@@ -210,6 +210,14 @@
     [Parameter]
     public string Id { get; set; } = string.Empty;
 
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string? ReturnQuery { get; set; }
+
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public int ReturnPage { get; set; } = 1;
+
     private ScryfallCard? card;
     private bool showBackFace = false;
 
@@ -260,7 +268,15 @@
 
     private void GoBack()
     {
-        Navigation.NavigateTo("/simplesearch");
+        if (!string.IsNullOrEmpty(ReturnQuery))
+        {
+            var q = Uri.EscapeDataString(ReturnQuery);
+            Navigation.NavigateTo($"/simplesearch?Query={q}&Page={ReturnPage}");
+        }
+        else
+        {
+            Navigation.NavigateTo("/simplesearch");
+        }
     }
 
     private void ToggleCardFace()
