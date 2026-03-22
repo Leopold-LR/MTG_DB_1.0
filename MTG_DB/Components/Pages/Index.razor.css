@@ -1,5 +1,28 @@
 /* ===== Home Page — MTG Hub ===== */
 
+/* ---- Keyframes ---- */
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes orbFloat {
+    0%, 100% { transform: translate(0, 0)   scale(1);    opacity: 1; }
+    25%       { transform: translate(30px, -25px) scale(1.12); opacity: 0.85; }
+    50%       { transform: translate(-20px, 35px) scale(0.93); opacity: 0.95; }
+    75%       { transform: translate(18px, 12px)  scale(1.06); opacity: 0.8; }
+}
+
+@keyframes titleShimmer {
+    0%, 100% { background-position: 0% 50%; }
+    50%       { background-position: 100% 50%; }
+}
+
+@keyframes manaPipPulse {
+    0%, 100% { opacity: 0.5; transform: scale(1); }
+    50%       { opacity: 0.9; transform: scale(1.35); }
+}
+
 .homepage {
     min-height: 100vh;
     background-color: #0d0d1a;
@@ -41,6 +64,46 @@
     pointer-events: none;
 }
 
+/* ---- Animated Mana Orbs ---- */
+.mana-orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(90px);
+    pointer-events: none;
+    z-index: 0;
+    will-change: transform, opacity;
+    animation: orbFloat linear infinite;
+}
+
+.orb-blue {
+    width: 560px;
+    height: 560px;
+    top: -80px;
+    left: 15%;
+    background: radial-gradient(circle, rgba(74, 144, 226, 0.28), transparent 68%);
+    animation-duration: 20s;
+}
+
+.orb-purple {
+    width: 480px;
+    height: 480px;
+    bottom: -40px;
+    right: 8%;
+    background: radial-gradient(circle, rgba(155, 89, 182, 0.22), transparent 66%);
+    animation-duration: 26s;
+    animation-delay: -9s;
+}
+
+.orb-teal {
+    width: 380px;
+    height: 380px;
+    top: 35%;
+    left: -80px;
+    background: radial-gradient(circle, rgba(56, 178, 172, 0.16), transparent 65%);
+    animation-duration: 31s;
+    animation-delay: -16s;
+}
+
 .hero-content {
     position: relative;
     z-index: 1;
@@ -74,11 +137,13 @@
     letter-spacing: 0.1em;
     line-height: 1;
     margin-bottom: 1rem;
-    background: linear-gradient(135deg, #f5d86e 0%, #ecc94b 50%, #b8892a 100%);
+    background: linear-gradient(120deg, #f5d86e 0%, #ecc94b 25%, #b8892a 50%, #ecc94b 75%, #f5d86e 100%);
+    background-size: 200% 100%;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
     text-shadow: none;
+    animation: titleShimmer 5s ease-in-out infinite;
 }
 
 /* Tagline */
@@ -276,14 +341,15 @@
     width: 12px;
     height: 12px;
     border-radius: 50%;
-    opacity: 0.6;
+    opacity: 0.5;
+    animation: manaPipPulse 3s ease-in-out infinite;
 }
 
-.mana-pip.white { background: #f5f0d8; }
-.mana-pip.blue  { background: #4a90e2; }
-.mana-pip.black { background: #9b59b6; }
-.mana-pip.red   { background: #e05c4b; }
-.mana-pip.green { background: #4caf72; }
+.mana-pip.white { background: #f5f0d8; animation-delay: 0s; }
+.mana-pip.blue  { background: #4a90e2; animation-delay: 0.6s; }
+.mana-pip.black { background: #9b59b6; animation-delay: 1.2s; }
+.mana-pip.red   { background: #e05c4b; animation-delay: 1.8s; }
+.mana-pip.green { background: #4caf72; animation-delay: 2.4s; }
 
 /* ---- Footer ---- */
 .homepage-footer {
