@@ -23,23 +23,24 @@
     50%       { opacity: 0.9; transform: scale(1.35); }
 }
 
+/* ---- Full-viewport layout ---- */
 .homepage {
-    min-height: 100vh;
+    height: 100vh;
     background-color: #0d0d1a;
     display: flex;
     flex-direction: column;
     color: #e8e8f0;
-    overflow-x: hidden;
+    overflow: hidden;
 }
 
 /* ---- Hero Section ---- */
 .hero {
     position: relative;
-    min-height: 70vh;
+    flex: 1;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 4rem 2rem;
+    padding: 2rem 2rem 0.75rem;
     background:
         radial-gradient(ellipse at 60% 0%, rgba(74, 144, 226, 0.12) 0%, transparent 60%),
         radial-gradient(ellipse at 20% 100%, rgba(76, 175, 114, 0.08) 0%, transparent 50%),
@@ -125,18 +126,18 @@
     border: 1px solid rgba(236, 201, 75, 0.35);
     border-radius: 20px;
     padding: 0.35rem 1rem;
-    margin-bottom: 1.5rem;
+    margin-bottom: 0.75rem;
     background: rgba(236, 201, 75, 0.07);
 }
 
 /* Hero title */
 .hero-title {
     font-family: 'Cinzel', Georgia, serif;
-    font-size: clamp(3.5rem, 10vw, 6rem);
+    font-size: clamp(3rem, 9vw, 5.5rem);
     font-weight: 900;
     letter-spacing: 0.1em;
     line-height: 1;
-    margin-bottom: 1rem;
+    margin-bottom: 0.6rem;
     background: linear-gradient(120deg, #f5d86e 0%, #ecc94b 25%, #b8892a 50%, #ecc94b 75%, #f5d86e 100%);
     background-size: 200% 100%;
     -webkit-background-clip: text;
@@ -148,17 +149,17 @@
 
 /* Tagline */
 .hero-tagline {
-    font-size: 1.15rem;
+    font-size: 1.05rem;
     font-weight: 300;
     color: rgba(232, 232, 240, 0.7);
-    margin-bottom: 2.5rem;
+    margin-bottom: 1.5rem;
     line-height: 1.6;
     letter-spacing: 0.01em;
 }
 
 /* Hero Search */
 .hero-search {
-    margin-bottom: 2rem;
+    margin-bottom: 1.25rem;
 }
 
 .search-container {
@@ -187,7 +188,7 @@
 .search-input {
     flex: 1;
     border: none;
-    padding: 0.85rem 0.5rem;
+    padding: 0.75rem 0.5rem;
     font-size: 1.05rem;
     font-family: 'Inter', sans-serif;
     border-radius: 8px;
@@ -206,7 +207,7 @@
     background: linear-gradient(135deg, #ecc94b, #d69e2e);
     color: #0d0d1a;
     border: none;
-    padding: 0.85rem 1.75rem;
+    padding: 0.75rem 1.75rem;
     border-radius: 10px;
     font-weight: 700;
     font-family: 'Inter', sans-serif;
@@ -237,7 +238,7 @@
     background: rgba(255, 255, 255, 0.07);
     color: rgba(232, 232, 240, 0.85);
     border: 1px solid rgba(255, 255, 255, 0.12);
-    padding: 0.6rem 1.25rem;
+    padding: 0.55rem 1.1rem;
     border-radius: 24px;
     font-family: 'Inter', sans-serif;
     font-size: 0.875rem;
@@ -261,45 +262,50 @@
 
 /* ---- Features Section ---- */
 .features-section {
-    padding: 3rem 2rem;
+    padding: 0.75rem 2rem 0.5rem;
     max-width: 1100px;
     margin: 0 auto;
     width: 100%;
+    flex-shrink: 0;
     animation: fadeInUp 0.8s ease 0.2s both;
 }
 
 .features-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: 1.25rem;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 0.875rem;
 }
 
 .feature-card {
     background: rgba(255, 255, 255, 0.04);
     border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 16px;
-    padding: 2rem 1.75rem;
+    border-radius: 14px;
+    padding: 1.1rem 1.25rem;
     cursor: pointer;
     transition: all 0.3s ease;
     backdrop-filter: blur(8px);
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
 }
 
 .feature-card:hover {
     background: rgba(255, 255, 255, 0.08);
     border-color: rgba(236, 201, 75, 0.25);
-    transform: translateY(-4px);
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+    transform: translateY(-3px);
+    box-shadow: 0 10px 32px rgba(0, 0, 0, 0.4);
 }
 
 .feature-icon {
-    font-size: 2rem;
-    margin-bottom: 1rem;
-    width: 3.5rem;
-    height: 3.5rem;
-    border-radius: 12px;
+    font-size: 1.4rem;
+    margin-bottom: 0.25rem;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0;
 }
 
 .feature-icon.mana-blue  { background: rgba(74, 144, 226, 0.15); border: 1px solid rgba(74, 144, 226, 0.25); }
@@ -308,24 +314,25 @@
 
 .feature-card h3 {
     font-family: 'Cinzel', Georgia, serif;
-    font-size: 1.1rem;
+    font-size: 0.95rem;
     font-weight: 700;
     color: #e8e8f0;
-    margin-bottom: 0.625rem;
+    margin: 0;
 }
 
 .feature-card p {
-    font-size: 0.9rem;
+    font-size: 0.8rem;
     color: rgba(232, 232, 240, 0.6);
-    line-height: 1.6;
-    margin-bottom: 1.25rem;
+    line-height: 1.5;
+    margin: 0;
 }
 
 .feature-link {
-    font-size: 0.85rem;
+    font-size: 0.78rem;
     font-weight: 600;
     color: #ecc94b;
     letter-spacing: 0.01em;
+    margin-top: auto;
 }
 
 /* ---- Mana Color Bar ---- */
@@ -333,13 +340,13 @@
     display: flex;
     justify-content: center;
     gap: 0.75rem;
-    padding: 2rem;
-    margin-top: auto;
+    padding: 0.75rem 2rem;
+    flex-shrink: 0;
 }
 
 .mana-pip {
-    width: 12px;
-    height: 12px;
+    width: 10px;
+    height: 10px;
     border-radius: 50%;
     opacity: 0.5;
     animation: manaPipPulse 3s ease-in-out infinite;
@@ -354,12 +361,13 @@
 /* ---- Footer ---- */
 .homepage-footer {
     text-align: center;
-    padding: 1.5rem 2rem;
+    padding: 0.6rem 2rem;
     border-top: 1px solid rgba(255, 255, 255, 0.06);
+    flex-shrink: 0;
 }
 
 .homepage-footer p {
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     color: rgba(232, 232, 240, 0.3);
     margin: 0;
 }
@@ -376,12 +384,11 @@
 /* ---- Responsive ---- */
 @media (max-width: 640px) {
     .hero {
-        min-height: 60vh;
-        padding: 3rem 1.25rem;
+        padding: 1.5rem 1.25rem 0.5rem;
     }
 
     .hero-title {
-        font-size: 3rem;
+        font-size: 2.75rem;
     }
 
     .search-container {
@@ -394,7 +401,7 @@
     .search-icon-prefix { display: none; }
 
     .search-input {
-        padding: 0.75rem;
+        padding: 0.65rem;
     }
 
     .search-button {
@@ -407,6 +414,24 @@
     }
 
     .features-section {
-        padding: 2rem 1.25rem;
+        padding: 0.5rem 1.25rem 0.25rem;
     }
+
+    .features-grid {
+        grid-template-columns: 1fr;
+        gap: 0.625rem;
+    }
+
+    .feature-card p {
+        display: none;
+    }
+}
+
+/* ---- Short screens (landscape mobile / small laptops) ---- */
+@media (max-height: 700px) {
+    .hero-badge { display: none; }
+    .hero-tagline { display: none; }
+    .feature-card p { display: none; }
+    .mana-bar { padding: 0.4rem 2rem; }
+    .homepage-footer { padding: 0.4rem 2rem; }
 }
