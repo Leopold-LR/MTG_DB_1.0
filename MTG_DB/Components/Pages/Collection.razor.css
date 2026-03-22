@@ -1361,3 +1361,444 @@
 @media (min-width: 1700px) {
     .collection-grid { grid-template-columns: repeat(6, 1fr); }
 }
+
+/* ════════════════════════════════════════════════════════════════════════════
+   COLLECTION TYPES — Visual Design System (MTGA-46)
+   ════════════════════════════════════════════════════════════════════════════ */
+
+/* ── Type badges ──────────────────────────────────────────────────────────── */
+.type-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.2rem 0.55rem;
+    border-radius: 4px;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    line-height: 1;
+    white-space: nowrap;
+}
+
+.type-badge-binder {
+    background: rgba(66, 153, 225, 0.18);
+    border: 1px solid rgba(66, 153, 225, 0.35);
+    color: #63b3ed;
+}
+
+.type-badge-deck {
+    background: rgba(72, 187, 120, 0.18);
+    border: 1px solid rgba(72, 187, 120, 0.35);
+    color: #68d391;
+}
+
+.type-badge-bulk {
+    background: rgba(237, 137, 54, 0.18);
+    border: 1px solid rgba(237, 137, 54, 0.35);
+    color: #f6ad55;
+}
+
+/* Badge on tiles: bottom-left position */
+.collection-tile .type-badge {
+    position: absolute;
+    bottom: 0.75rem;
+    left: 0.75rem;
+    z-index: 2;
+}
+
+/* Badge in detail view header */
+.detail-type-badge {
+    margin-left: auto;
+    flex-shrink: 0;
+}
+
+/* ── Type filter tabs ─────────────────────────────────────────────────────── */
+.type-filter-tabs {
+    background: rgba(13, 13, 26, 0.6);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    padding: 0.5rem 0;
+}
+
+.type-filter-inner {
+    max-width: 1300px;
+    margin: 0 auto;
+    padding: 0 2rem;
+    display: flex;
+    gap: 0.25rem;
+}
+
+.type-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.45rem 1rem;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    background: transparent;
+    color: rgba(232, 232, 240, 0.45);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: color 0.15s, background 0.15s, border-color 0.15s;
+}
+
+.type-tab:hover {
+    color: rgba(232, 232, 240, 0.8);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.type-tab .tab-count {
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 0.1rem 0.35rem;
+    border-radius: 9px;
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(232, 232, 240, 0.4);
+    transition: background 0.15s, color 0.15s;
+}
+
+.type-tab-active {
+    color: #e8e8f0 !important;
+    background: rgba(255, 255, 255, 0.07);
+    border-color: rgba(255, 255, 255, 0.12);
+}
+
+.type-tab-active .tab-count {
+    background: rgba(255, 255, 255, 0.14);
+    color: rgba(232, 232, 240, 0.75);
+}
+
+.type-tab-active-binder { border-color: rgba(66, 153, 225, 0.3) !important; color: #63b3ed !important; }
+.type-tab-active-binder .tab-count { background: rgba(66, 153, 225, 0.15); color: #63b3ed; }
+
+.type-tab-active-deck { border-color: rgba(72, 187, 120, 0.3) !important; color: #68d391 !important; }
+.type-tab-active-deck .tab-count { background: rgba(72, 187, 120, 0.15); color: #68d391; }
+
+.type-tab-active-bulk { border-color: rgba(237, 137, 54, 0.3) !important; color: #f6ad55 !important; }
+.type-tab-active-bulk .tab-count { background: rgba(237, 137, 54, 0.15); color: #f6ad55; }
+
+/* ── Two-step modal: type selection grid ──────────────────────────────────── */
+.modal-step-hint {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.875rem;
+    color: rgba(232, 232, 240, 0.55);
+    margin: 0 0 1rem 0;
+}
+
+.type-select-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
+}
+
+.type-select-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 1.1rem 0.75rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.03);
+    cursor: pointer;
+    text-align: center;
+    transition: border-color 0.15s, background 0.15s, transform 0.15s;
+}
+
+.type-select-card:hover {
+    border-color: rgba(255, 255, 255, 0.22);
+    background: rgba(255, 255, 255, 0.06);
+    transform: translateY(-2px);
+}
+
+.type-select-icon {
+    font-size: 1.75rem;
+    line-height: 1;
+}
+
+.type-select-name {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #e8e8f0;
+}
+
+.type-select-desc {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.7rem;
+    color: rgba(232, 232, 240, 0.4);
+    line-height: 1.3;
+}
+
+.type-select-active {
+    transform: translateY(-2px);
+}
+
+.type-select-active-binder {
+    border-color: rgba(66, 153, 225, 0.5) !important;
+    background: rgba(66, 153, 225, 0.1) !important;
+}
+.type-select-active-binder .type-select-name { color: #63b3ed; }
+
+.type-select-active-deck {
+    border-color: rgba(72, 187, 120, 0.5) !important;
+    background: rgba(72, 187, 120, 0.1) !important;
+}
+.type-select-active-deck .type-select-name { color: #68d391; }
+
+.type-select-active-bulk {
+    border-color: rgba(237, 137, 54, 0.5) !important;
+    background: rgba(237, 137, 54, 0.1) !important;
+}
+.type-select-active-bulk .type-select-name { color: #f6ad55; }
+
+/* Step 2: selected type row */
+.modal-selected-type {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+}
+
+.modal-change-type-btn {
+    background: transparent;
+    border: none;
+    color: rgba(232, 232, 240, 0.4);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.75rem;
+    cursor: pointer;
+    padding: 0;
+    text-decoration: underline;
+    transition: color 0.15s;
+}
+.modal-change-type-btn:hover { color: rgba(232, 232, 240, 0.75); }
+
+/* ── Deck view: progress bar ──────────────────────────────────────────────── */
+.deck-progress-wrap {
+    max-width: 1400px;
+    margin: 1.5rem auto 0;
+    padding: 0 2rem;
+}
+
+.deck-progress-label {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.4rem;
+}
+
+.deck-count-main {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #68d391;
+}
+
+.deck-count-side {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.8rem;
+    color: rgba(232, 232, 240, 0.4);
+}
+
+.deck-progress-track {
+    height: 6px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.deck-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, rgba(72, 187, 120, 0.6), rgba(72, 187, 120, 0.9));
+    border-radius: 3px;
+    transition: width 0.6s ease;
+    min-width: 4px;
+}
+
+/* ── Deck view: mana curve ────────────────────────────────────────────────── */
+.mana-curve-wrap {
+    max-width: 1400px;
+    margin: 1.25rem auto 0;
+    padding: 0 2rem;
+    background: rgba(255, 255, 255, 0.025);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 10px;
+    padding: 1rem 1.5rem;
+    margin-left: 2rem;
+    margin-right: 2rem;
+}
+
+.mana-curve-header {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+    margin-bottom: 0.875rem;
+}
+
+.mana-curve-title {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: rgba(232, 232, 240, 0.65);
+}
+
+.mana-curve-subtitle {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.7rem;
+    color: rgba(232, 232, 240, 0.3);
+}
+
+.mana-curve-bars {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.5rem;
+    height: 72px;
+}
+
+.curve-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.2rem;
+    flex: 1;
+}
+
+.curve-bar-track {
+    width: 100%;
+    flex: 1;
+    background: rgba(255, 255, 255, 0.07);
+    border-radius: 3px 3px 0 0;
+    display: flex;
+    align-items: flex-end;
+    overflow: hidden;
+    min-height: 4px;
+}
+
+.curve-bar-fill {
+    width: 100%;
+    background: linear-gradient(180deg, rgba(72, 187, 120, 0.7), rgba(72, 187, 120, 0.4));
+    border-radius: 3px 3px 0 0;
+    transition: height 0.5s ease;
+    min-height: 0;
+}
+
+.curve-bar-count {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.65rem;
+    font-weight: 600;
+    color: rgba(72, 187, 120, 0.8);
+    line-height: 1;
+    min-height: 0.75rem;
+}
+
+.curve-bar-cmc {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.65rem;
+    color: rgba(232, 232, 240, 0.35);
+    line-height: 1;
+}
+
+/* ── Deck section labels (Mainboard / Sideboard) ──────────────────────────── */
+.deck-section-label {
+    max-width: 1400px;
+    margin: 1.5rem auto 0.75rem;
+    padding: 0 2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(232, 232, 240, 0.45);
+}
+
+.deck-section-icon { font-size: 0.9rem; }
+
+.deck-section-count {
+    margin-left: auto;
+    font-size: 0.7rem;
+    color: rgba(232, 232, 240, 0.3);
+    font-weight: 600;
+    background: rgba(255, 255, 255, 0.07);
+    border-radius: 9px;
+    padding: 0.1rem 0.4rem;
+}
+
+.deck-section-sideboard { color: rgba(159, 122, 234, 0.65); }
+.deck-section-sideboard .deck-section-count { color: rgba(159, 122, 234, 0.5); }
+
+/* Sideboard card subtle styling */
+.col-card-sideboard {
+    opacity: 0.85;
+    border-color: rgba(159, 122, 234, 0.2) !important;
+}
+.col-card-sideboard:hover { opacity: 1; }
+
+/* ── Binder view: set group headers ───────────────────────────────────────── */
+.set-group-header {
+    max-width: 1400px;
+    margin: 1.5rem auto 0.75rem;
+    padding: 0.6rem 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    border-left: 3px solid rgba(66, 153, 225, 0.4);
+    background: rgba(66, 153, 225, 0.05);
+    border-radius: 0 6px 6px 0;
+}
+
+.set-code-badge {
+    font-family: 'Cinzel', Georgia, serif;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    color: #63b3ed;
+    background: rgba(66, 153, 225, 0.15);
+    border: 1px solid rgba(66, 153, 225, 0.25);
+    border-radius: 4px;
+    padding: 0.15rem 0.45rem;
+    flex-shrink: 0;
+}
+
+.set-name-label {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.825rem;
+    font-weight: 600;
+    color: rgba(232, 232, 240, 0.7);
+    flex: 1;
+}
+
+.set-card-count {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.72rem;
+    color: rgba(232, 232, 240, 0.35);
+}
+
+/* Binder condition overlay on card image */
+.binder-condition-overlay {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    padding: 0.2rem 0.45rem;
+    border-radius: 4px;
+    backdrop-filter: blur(6px);
+    z-index: 5;
+}
+
+/* Larger condition badge variant for binder */
+.condition-badge-lg {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.6rem;
+}
+
+/* Binder grid spacing between set groups */
+.binder-grid { margin-bottom: 0.5rem; }
