@@ -1,8 +1,8 @@
 /* ===== MainLayout — MTG Hub ===== */
 
-/* Offset content below the fixed top nav (52px height) */
+/* Offset content below the fixed top nav (54px height) */
 .main-content {
-    padding-top: 52px;
+    padding-top: 54px;
     min-height: 100vh;
     background-color: #0d0d1a;
 }
