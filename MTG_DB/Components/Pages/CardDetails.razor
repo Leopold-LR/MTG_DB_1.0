@@ -4,6 +4,7 @@
 @using MtgInventoryApp.Models
 @using MtgInventoryApp.Services
 @inject MtgInventoryApp.Services.ScryfallService Scryfall
+@inject MtgInventoryApp.Services.CryptMtgService CryptMtg
 @inject ToastService ToastService
 @inject NavigationManager Navigation
 @inject IJSRuntime JS
@@ -276,6 +277,62 @@
                                 </table>
                                 <p class="price-note">Prices sourced from <a href="https://scryfall.com" target="_blank" rel="noopener">Scryfall</a>. Updated daily.</p>
                             </div>
+
+                            <!-- La Crypte Price Widget -->
+                            <div class="crypt-price-widget">
+                                <div class="crypt-widget-header">
+                                    <span class="crypt-maple">🍁</span>
+                                    <h3 class="crypt-title">La Crypte</h3>
+                                    <span class="cad-badge">CAD</span>
+                                </div>
+
+                                @if (isLoadingCryptPrice)
+                                {
+                                    <div class="crypt-skeleton-body">
+                                        <div class="skeleton-line" style="width:60%;height:14px;margin-bottom:8px;"></div>
+                                        <div class="skeleton-line" style="width:60%;height:14px;margin-bottom:16px;"></div>
+                                        <div class="skeleton-line" style="width:40%;height:36px;border-radius:8px;"></div>
+                                    </div>
+                                }
+                                else if (cryptPrice == null)
+                                {
+                                    <p class="crypt-unavailable">Unable to fetch La Crypte pricing at this time.</p>
+                                }
+                                else if (!cryptPrice.RegularNM.HasValue && !cryptPrice.FoilNM.HasValue)
+                                {
+                                    <div class="crypt-not-listed">
+                                        <span class="crypt-not-listed-icon">—</span>
+                                        <p>Not currently listed at La Crypte.</p>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <table class="crypt-prices-table">
+                                        <tbody>
+                                            <tr>
+                                                <td class="crypt-format">Regular NM</td>
+                                                <td class="crypt-price">@(cryptPrice.RegularNM.HasValue ? $"CA${cryptPrice.RegularNM.Value:F2}" : "—")</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="crypt-format">Foil NM</td>
+                                                <td class="crypt-price">@(cryptPrice.FoilNM.HasValue ? $"CA${cryptPrice.FoilNM.Value:F2}" : "—")</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+
+                                    @if (cryptPrice.AvailableInFrench)
+                                    {
+                                        <span class="crypt-fr-badge">🇫🇷 French available</span>
+                                    }
+
+                                    @if (!string.IsNullOrEmpty(cryptPrice.ProductUrl))
+                                    {
+                                        <a href="@cryptPrice.ProductUrl" target="_blank" rel="noopener" class="crypt-buy-btn">
+                                            🛒 Buy at La Crypte
+                                        </a>
+                                    }
+                                }
+                            </div>
                         }
 
                         @* ── Rulings ── *@
@@ -385,6 +442,9 @@
     private bool showBackFace = false;
     private string activeTab = "overview";
 
+    private CryptMtgPrice? cryptPrice;
+    private bool isLoadingCryptPrice;
+
     private List<ScryfallRuling>? rulings;
     private bool isLoadingRulings;
 
@@ -416,6 +476,10 @@
                 errorMessage = "Card not found.";
                 ToastService.Show("Card not found.");
             }
+            else
+            {
+                _ = LoadCryptPrice(card.Name);
+            }
         }
         catch (HttpRequestException)
         {
@@ -445,6 +509,15 @@
             _ = LoadRulings();
         else if (tab == "prints" && prints == null)
             _ = LoadPrints();
+    }
+
+    private async Task LoadCryptPrice(string name)
+    {
+        isLoadingCryptPrice = true;
+        StateHasChanged();
+        cryptPrice = await CryptMtg.GetPriceAsync(name);
+        isLoadingCryptPrice = false;
+        StateHasChanged();
     }
 
     private async Task LoadRulings()

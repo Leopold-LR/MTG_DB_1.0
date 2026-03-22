@@ -7,10 +7,18 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
 builder.Services.AddScoped<ToastService>();
+builder.Services.AddMemoryCache();
 
 builder.Services.AddHttpClient<ScryfallService>(client =>
 {
     client.BaseAddress = new Uri("https://api.scryfall.com/");
+    client.DefaultRequestHeaders.Add("User-Agent", "MtgInventoryApp/1.0 (sapphirepro190@gmail.com)");
+    client.DefaultRequestHeaders.Add("Accept", "application/json");
+});
+
+builder.Services.AddHttpClient<CryptMtgService>(client =>
+{
+    client.BaseAddress = new Uri("https://cryptmtg.com/");
     client.DefaultRequestHeaders.Add("User-Agent", "MtgInventoryApp/1.0 (sapphirepro190@gmail.com)");
     client.DefaultRequestHeaders.Add("Accept", "application/json");
 });
