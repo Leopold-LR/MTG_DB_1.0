@@ -15,7 +15,7 @@
                 <span class="logo-icon">⬡</span>
                 <span class="logo-text">MTGHUB</span>
             </a>
-            <h1 class="collection-title">My Collection</h1>
+            <h1 class="collection-title">@ActiveGroup.Name</h1>
         </div>
     </header>
 
@@ -62,10 +62,25 @@
         </div>
     </div>
 
+    <!-- Collection Tabs -->
+    <div class="collection-tabs">
+        <div class="col-tabs-inner">
+            @foreach (var group in allCollections)
+            {
+                <button class="col-tab @(activeCollectionKey == group.Key ? "col-tab-active" : "")"
+                        @onclick="() => SwitchCollection(group.Key)">
+                    <span class="col-tab-icon">@group.Icon</span>
+                    <span>@group.Name</span>
+                    <span class="col-tab-count">@group.Cards.Sum(c => c.Quantity)</span>
+                </button>
+            }
+        </div>
+    </div>
+
     <!-- Main Content -->
     <main class="collection-main">
 
-        @if (collection.Count == 0)
+        @if (ActiveGroup.Cards.Count == 0)
         {
             <!-- Empty State -->
             <div class="empty-collection">
@@ -78,7 +93,7 @@
                         <circle cx="54" cy="52" r="2" fill="rgba(236,201,75,0.5)"/>
                     </svg>
                 </div>
-                <h2 class="empty-title">Your collection is empty</h2>
+                <h2 class="empty-title">@ActiveGroup.Name is empty</h2>
                 <p class="empty-subtitle">Find a card and add it to start building your collection!</p>
                 <button class="cta-btn" @onclick='() => Navigation.NavigateTo("/simplesearch")'>
                     <svg viewBox="0 0 20 20" fill="currentColor" width="16" height="16">
@@ -100,7 +115,7 @@
                     <input class="collection-search-input"
                            @bind="filterQuery"
                            @bind:event="oninput"
-                           placeholder="Search your collection..." />
+                           placeholder="Search @ActiveGroup.Name..." />
                     @if (!string.IsNullOrEmpty(filterQuery))
                     {
                         <button class="clear-filter-btn" @onclick='() => filterQuery = ""'>
@@ -193,38 +208,98 @@
         public decimal? PriceUsd { get; set; }
     }
 
+    // ── Collection group model ─────────────────────────────────────────────────
+    private class CollectionGroup
+    {
+        public string Key   { get; set; } = "";
+        public string Name  { get; set; } = "";
+        public string Icon  { get; set; } = "";
+        public List<CollectionEntry> Cards { get; set; } = new();
+    }
+
     // ── State ─────────────────────────────────────────────────────────────────
     private string filterQuery = "";
+    private string activeCollectionKey = "bulk";
 
-    // Demo collection — developer will replace with persistence layer
-    private List<CollectionEntry> collection = new()
+    // ── All collections ────────────────────────────────────────────────────────
+    private List<CollectionGroup> allCollections = new()
     {
-        new() { Name = "Black Lotus",            SetName = "Limited Edition Alpha", SetCode = "LEA", Condition = "NM",  IsFoil = false, Quantity = 1,  PriceUsd = 45000m },
-        new() { Name = "Jace, the Mind Sculptor", SetName = "Worldwake",             SetCode = "WWK", Condition = "LP",  IsFoil = true,  Quantity = 2,  PriceUsd = 55.99m },
-        new() { Name = "Lightning Bolt",          SetName = "Alpha",                 SetCode = "LEA", Condition = "NM",  IsFoil = false, Quantity = 4,  PriceUsd = 1.50m  },
-        new() { Name = "Sol Ring",                SetName = "Commander Masters",     SetCode = "CMM", Condition = "MP",  IsFoil = true,  Quantity = 1,  PriceUsd = 2.75m  },
-        new() { Name = "Mox Diamond",             SetName = "Stronghold",            SetCode = "STH", Condition = "HP",  IsFoil = false, Quantity = 1,  PriceUsd = 220m   },
-        new() { Name = "Ragavan, Nimble Pilferer", SetName = "Modern Horizons 2",   SetCode = "MH2", Condition = "NM",  IsFoil = false, Quantity = 3,  PriceUsd = 40m    },
-        new() { Name = "Orcish Bowmasters",       SetName = "Lord of the Rings",     SetCode = "LTR", Condition = "NM",  IsFoil = true,  Quantity = 2,  PriceUsd = 22m    },
-        new() { Name = "Force of Will",           SetName = "Alliances",             SetCode = "ALL", Condition = "LP",  IsFoil = false, Quantity = 2,  PriceUsd = 75m    },
-        new() { Name = "Counterspell",            SetName = "Masters Edition 4",     SetCode = "ME4", Condition = "NM",  IsFoil = false, Quantity = 4,  PriceUsd = 1.25m  },
-        new() { Name = "Wrenn and Six",           SetName = "Modern Horizons",       SetCode = "MH1", Condition = "DMG", IsFoil = false, Quantity = 1,  PriceUsd = 45m    },
+        new()
+        {
+            Key = "bulk", Name = "Bulk", Icon = "📦",
+            Cards = new()
+            {
+                new() { Name = "Lightning Bolt",   SetName = "Alpha",             SetCode = "LEA", Condition = "NM",  IsFoil = false, Quantity = 4,  PriceUsd = 1.50m  },
+                new() { Name = "Counterspell",     SetName = "Masters Edition 4", SetCode = "ME4", Condition = "NM",  IsFoil = false, Quantity = 4,  PriceUsd = 1.25m  },
+                new() { Name = "Sol Ring",         SetName = "Commander Masters", SetCode = "CMM", Condition = "MP",  IsFoil = false, Quantity = 3,  PriceUsd = 2.75m  },
+            }
+        },
+        new()
+        {
+            Key = "binder1", Name = "Binder 1", Icon = "📗",
+            Cards = new()
+            {
+                new() { Name = "Black Lotus",            SetName = "Limited Edition Alpha", SetCode = "LEA", Condition = "NM",  IsFoil = false, Quantity = 1, PriceUsd = 45000m },
+                new() { Name = "Mox Diamond",            SetName = "Stronghold",            SetCode = "STH", Condition = "HP",  IsFoil = false, Quantity = 1, PriceUsd = 220m   },
+                new() { Name = "Force of Will",          SetName = "Alliances",             SetCode = "ALL", Condition = "LP",  IsFoil = false, Quantity = 2, PriceUsd = 75m    },
+            }
+        },
+        new()
+        {
+            Key = "binder2", Name = "Binder 2", Icon = "📘",
+            Cards = new()
+            {
+                new() { Name = "Jace, the Mind Sculptor", SetName = "Worldwake",          SetCode = "WWK", Condition = "LP", IsFoil = true,  Quantity = 2, PriceUsd = 55.99m },
+                new() { Name = "Wrenn and Six",           SetName = "Modern Horizons",    SetCode = "MH1", Condition = "DMG",IsFoil = false, Quantity = 1, PriceUsd = 45m    },
+            }
+        },
+        new()
+        {
+            Key = "deck1", Name = "Deck 1", Icon = "🎴",
+            Cards = new()
+            {
+                new() { Name = "Ragavan, Nimble Pilferer", SetName = "Modern Horizons 2", SetCode = "MH2", Condition = "NM", IsFoil = false, Quantity = 3, PriceUsd = 40m  },
+                new() { Name = "Lightning Bolt",           SetName = "Alpha",             SetCode = "LEA", Condition = "NM", IsFoil = false, Quantity = 4, PriceUsd = 1.50m },
+                new() { Name = "Force of Will",            SetName = "Alliances",         SetCode = "ALL", Condition = "NM", IsFoil = false, Quantity = 4, PriceUsd = 75m   },
+            }
+        },
+        new()
+        {
+            Key = "deck2", Name = "Deck 2", Icon = "🃏",
+            Cards = new()
+            {
+                new() { Name = "Orcish Bowmasters", SetName = "Lord of the Rings", SetCode = "LTR", Condition = "NM", IsFoil = true,  Quantity = 2, PriceUsd = 22m },
+                new() { Name = "Sol Ring",          SetName = "Commander Masters", SetCode = "CMM", Condition = "NM", IsFoil = true,  Quantity = 1, PriceUsd = 2.75m },
+                new() { Name = "Counterspell",      SetName = "Masters Edition 4", SetCode = "ME4", Condition = "NM", IsFoil = false, Quantity = 4, PriceUsd = 1.25m },
+            }
+        },
     };
+
+    // ── Active group ───────────────────────────────────────────────────────────
+    private CollectionGroup ActiveGroup =>
+        allCollections.FirstOrDefault(g => g.Key == activeCollectionKey) ?? allCollections[0];
 
     // ── Computed properties ───────────────────────────────────────────────────
     private IEnumerable<CollectionEntry> FilteredCollection =>
         string.IsNullOrWhiteSpace(filterQuery)
-            ? collection
-            : collection.Where(e =>
+            ? ActiveGroup.Cards
+            : ActiveGroup.Cards.Where(e =>
                 e.Name.Contains(filterQuery, StringComparison.OrdinalIgnoreCase) ||
                 e.SetName.Contains(filterQuery, StringComparison.OrdinalIgnoreCase) ||
                 e.SetCode.Contains(filterQuery, StringComparison.OrdinalIgnoreCase));
 
-    private int     TotalCards      => collection.Sum(e => e.Quantity);
-    private int     UniqueCards     => collection.Count;
-    private string  EstimatedValue  => collection.Any(e => e.PriceUsd.HasValue)
-        ? "$" + collection.Sum(e => (e.PriceUsd ?? 0m) * e.Quantity).ToString("N2")
+    private int     TotalCards      => ActiveGroup.Cards.Sum(e => e.Quantity);
+    private int     UniqueCards     => ActiveGroup.Cards.Count;
+    private string  EstimatedValue  => ActiveGroup.Cards.Any(e => e.PriceUsd.HasValue)
+        ? "$" + ActiveGroup.Cards.Sum(e => (e.PriceUsd ?? 0m) * e.Quantity).ToString("N2")
         : "N/A";
+
+    // ── Switch collection ─────────────────────────────────────────────────────
+    private void SwitchCollection(string key)
+    {
+        activeCollectionKey = key;
+        filterQuery = "";
+    }
 
     // ── Quantity stepper ──────────────────────────────────────────────────────
     private void Increment(CollectionEntry entry)

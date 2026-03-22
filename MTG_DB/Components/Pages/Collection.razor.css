@@ -163,6 +163,76 @@
     background-clip: text;
 }
 
+/* ── Collection Tabs ──────────────────────────────────────────────────────── */
+.collection-tabs {
+    background: rgba(255, 255, 255, 0.02);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.col-tabs-inner {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+    display: flex;
+    gap: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+.col-tabs-inner::-webkit-scrollbar { display: none; }
+
+.col-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.875rem 1.25rem;
+    border: none;
+    border-bottom: 2px solid transparent;
+    background: transparent;
+    color: rgba(232, 232, 240, 0.45);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: color 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+    white-space: nowrap;
+    flex-shrink: 0;
+    margin-bottom: -1px;
+}
+
+.col-tab:hover {
+    color: rgba(232, 232, 240, 0.85);
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.col-tab-active {
+    color: #ecc94b !important;
+    border-bottom-color: #ecc94b;
+    background: transparent;
+}
+
+.col-tab-icon {
+    font-size: 0.9rem;
+    line-height: 1;
+}
+
+.col-tab-count {
+    font-size: 0.7rem;
+    font-weight: 700;
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(232, 232, 240, 0.5);
+    padding: 0.1rem 0.45rem;
+    border-radius: 20px;
+    min-width: 20px;
+    text-align: center;
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+.col-tab-active .col-tab-count {
+    background: rgba(236, 201, 75, 0.18);
+    color: #ecc94b;
+}
+
 /* ── Main content ─────────────────────────────────────────────────────────── */
 .collection-main {
     max-width: 1400px;
